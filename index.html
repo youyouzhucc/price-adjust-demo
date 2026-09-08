@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>调整价格</title>
+  <meta http-equiv="Cache-Control" content="no-store" />
+  <link rel="stylesheet" href="styles.css?v=20260908k" />
+</head>
+<body>
+  <div class="page">
+    <main class="stage">
+      <div class="mode-bar" role="tablist">
+        <button class="mode-btn" data-mode="current" type="button">现有</button>
+        <button class="mode-btn is-on" data-mode="all" type="button">综合</button>
+        <button class="mode-btn" data-mode="a" type="button">A</button>
+        <button class="mode-btn" data-mode="b" type="button">B</button>
+        <button class="mode-btn" data-mode="c" type="button">C</button>
+        <button class="mode-btn" data-mode="d" type="button">D</button>
+      </div>
+      <p class="mode-cap" id="mode-cap">综合：先锚定出价，只给一条近建议，底价单独说清</p>
+
+      <div class="phone">
+        <!-- 现有 -->
+        <section class="sheet" id="screen-current" hidden>
+          <header class="nav">
+            <h1>调整价格</h1>
+            <button class="nav-x" type="button" aria-label="关闭">×</button>
+          </header>
+          <div class="goods">
+            <div class="goods-pic" aria-hidden="true"></div>
+            <div>
+              <p class="goods-name">SMILEREPUBLIC 起司猫2.0 织物 千鸟格 防滑耐磨增高...</p>
+              <p class="goods-spec">37码 SS级</p>
+            </div>
+          </div>
+          <div class="refs">
+            <div class="ref"><strong>¥778</strong><span>全新市场价</span></div>
+            <div class="ref"><strong>¥650</strong><span>在售最低价</span></div>
+            <div class="ref"><strong>¥496</strong><span>近90天成交均价</span></div>
+          </div>
+          <p class="sec">我的出价</p>
+          <div class="chip-row chip-static">
+            <div>建议出价 <b>¥498</b>，可在首页【卖家直降】频道露出</div>
+            <span class="chip-use">立即使用</span>
+          </div>
+          <div class="hero"><div class="hero-row"><span class="hero-yen">¥570</span><span class="hero-edit">修改</span></div></div>
+          <div class="ruler-static">
+            <div class="ruler-static-track"><i class="needle"></i></div>
+            <div class="ruler-static-labels"><span>500</span><span>550</span><span>600</span><span>650</span></div>
+          </div>
+          <p class="payout">预计到手 <b>¥462.45</b> <span class="link">明细</span></p>
+          <div class="trust trust-on">
+            <div class="trust-top"><p>底价托管</p><div class="switch is-on"></div></div>
+            <p class="floor-line"><b>¥513</b> 修改底价</p>
+            <p class="trust-desc">自动处理还价&amp;跟随行情调价，出售速度提升50%</p>
+            <div class="plans">
+              <div class="plan is-on"><h3>卖得快</h3><span class="plan-tag">94% 卖家选择</span><small>自动跟最低价，预计 10 天售出</small></div>
+              <div class="plan"><h3>到手多</h3><small>合理涨跌，预计多卖 ¥15</small></div>
+            </div>
+          </div>
+          <div class="sheet-foot"><button class="cta" type="button">确认调价</button></div>
+        </section>
+
+        <!-- 综合 -->
+        <section class="sheet" id="screen-all">
+          <header class="nav">
+            <h1>调整价格</h1>
+            <button class="nav-x" type="button" aria-label="关闭">×</button>
+          </header>
+          <div class="mod">
+            <p class="mod-title">商卡</p>
+            <div class="goods">
+              <div class="goods-pic" aria-hidden="true"></div>
+              <div class="goods-main">
+                <p class="goods-name">SMILEREPUBLIC 起司猫2.0 织物 千鸟格 防滑耐磨增高...</p>
+                <p class="goods-spec">SS级 · 37码</p>
+              </div>
+            </div>
+            <div class="mod-line">
+              <div class="mod-line-body">
+                <div class="mod-line-hd">
+                  <strong>品相和价格解读</strong>
+                  <span class="mod-title-sub">当前出价 ¥650</span>
+                </div>
+                <p>SS 级 · 仅试穿，无可见瑕疵。品相接近全新，低于市场价 98 折（¥1,263）可获商品露出。</p>
+              </div>
+              <button class="more-ico" type="button" data-open="ref" aria-label="更多"></button>
+            </div>
+          </div>
+
+          <div class="mod">
+            <div class="hero">
+              <div class="hero-row">
+                <span class="hero-yen">¥<span data-price>498</span></span>
+                <button class="hero-edit" type="button">修改</button>
+              </div>
+              <p class="hero-take">预计到手 <b data-payout>¥404.04</b></p>
+            </div>
+            <div class="roller" id="roller-all" tabindex="0">
+              <div class="needle"><span class="needle-tag" id="expo-tag">曝光 +1,824次</span></div>
+              <div class="roller-strip"></div>
+            </div>
+          </div>
+
+          <div class="mod trust" id="trust-all">
+            <div class="trust-top">
+              <p>底价托管</p>
+              <button class="switch is-on" id="trust-all-switch" type="button" aria-pressed="true"></button>
+            </div>
+            <p class="trust-desc" id="trust-all-off" hidden>开启后自动降价并接受还价，都不会低于底价</p>
+            <div id="trust-all-body">
+              <p class="floor-line">
+                <b>¥<span id="floor-all-num">470</span></b>
+                <button class="text-btn" id="edit-floor-all" type="button">修改底价</button>
+              </p>
+              <p class="trust-desc">自动降价不会低于底价；还价不低于底价时自动接受</p>
+              <div class="plans">
+                <button class="plan is-on" data-plan="fast" type="button">
+                  <h3>卖得快</h3>
+                  <span class="plan-tag">94% 卖家选择</span>
+                  <small>跟随最低价，预计 10 天售出</small>
+                </button>
+                <button class="plan" data-plan="more" type="button">
+                  <h3>到手多</h3>
+                  <small>不跟随最低价，预计多赚 ¥15</small>
+                </button>
+              </div>
+              <p class="flash" id="flash-all" hidden>已到卖家直降价，可进入直降频道</p>
+            </div>
+          </div>
+          <div class="sheet-foot"><button class="cta" type="button">确认调价</button></div>
+        </section>
+
+        <div class="layer" id="cond-layer" hidden>
+          <button class="layer-mask" id="cond-mask" type="button" aria-label="关闭"></button>
+          <div class="layer-sheet">
+            <i class="layer-handle"></i>
+            <p class="layer-title">品相解读</p>
+            <div class="ref-list">
+              <div class="ref-list-item"><span>成色</span><strong>SS 级</strong></div>
+              <div class="ref-list-item"><span>鉴定</span><strong>鞋面有使用痕迹</strong></div>
+              <div class="ref-list-item"><span>出价建议</span><strong>不宜按全新价</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer" id="ref-layer" hidden>
+          <button class="layer-mask" id="ref-mask" type="button" aria-label="关闭"></button>
+          <div class="layer-sheet is-ref">
+            <div class="ref-head">
+              <p class="layer-title">价格参考</p>
+              <button class="ref-close" id="ref-close" type="button" aria-label="关闭">×</button>
+            </div>
+            <div class="ref-filters">
+              <div class="ref-chips">
+                <button type="button">全部规格</button>
+                <button type="button" class="is-on">37码 SS级</button>
+              </div>
+              <div class="ref-chips">
+                <button type="button">全部成色</button>
+                <button type="button" class="is-on">SS级</button>
+                <button type="button">已使用</button>
+              </div>
+            </div>
+            <p class="ref-sec">价格行情</p>
+            <div class="ref-stats">
+              <div><strong>¥778</strong><span>全新市场价</span></div>
+              <div><strong>¥650</strong><span>在售最低价</span></div>
+              <div><strong>¥496</strong><span>近90天成交均价</span></div>
+            </div>
+            <div class="ref-tabs">
+              <button type="button" class="is-on">在售商品 (6)</button>
+              <button type="button">成交记录 (128)</button>
+            </div>
+            <div class="ref-sells">
+              <div class="ref-sell"><span>未使用 · 37码</span><b>¥650</b><i>同成色最低</i><em>48人浏览</em></div>
+              <div class="ref-sell"><span>SS级 · 37码</span><b>¥680</b><em>36人浏览</em></div>
+              <div class="ref-sell"><span>SS级 · 37码</span><b>¥698</b><em>22人浏览</em></div>
+              <div class="ref-sell"><span>已使用 · 37码</span><b>¥620</b><em>15人浏览</em></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer" id="fee-layer" hidden>
+          <button class="layer-mask" id="fee-mask" type="button" aria-label="关闭"></button>
+          <div class="layer-sheet">
+            <i class="layer-handle"></i>
+            <div class="layer-price">
+              <span>调价至</span>
+              <input id="layer-input" type="number" inputmode="numeric" />
+              <div class="step">
+                <button id="step-up" type="button" aria-label="加"></button>
+                <button id="step-down" type="button" aria-label="减"></button>
+              </div>
+            </div>
+            <div class="layer-fees">
+              <div class="take-item"><span>服务费</span><span id="layer-fee">-¥122.64</span></div>
+              <div id="layer-items"></div>
+              <div class="take-item take-net"><span>预计到手</span><b id="layer-pay">¥527.36</b></div>
+            </div>
+            <button class="cta" id="layer-ok" type="button">确认</button>
+          </div>
+        </div>
+
+        <!-- A：锚定我的出价，差值表达 -->
+        <section class="sheet" id="screen-a" hidden>
+          <header class="nav">
+            <h1>调整价格</h1>
+            <button class="nav-x" type="button" aria-label="关闭">×</button>
+          </header>
+          <div class="goods">
+            <div class="goods-pic" aria-hidden="true"></div>
+            <div>
+              <p class="goods-name">SMILEREPUBLIC 起司猫2.0 织物 千鸟格 防滑耐磨增高...</p>
+              <p class="goods-spec">37码 SS级</p>
+            </div>
+          </div>
+          <div class="refs">
+            <div class="ref"><strong>¥778</strong><span>全新市场价</span></div>
+            <div class="ref"><strong>¥650</strong><span>在售最低价</span></div>
+            <div class="ref"><strong>¥496</strong><span>近90天成交均价</span></div>
+          </div>
+          <p class="sec">我的出价</p>
+          <div class="hero">
+            <div class="hero-row">
+              <span class="hero-yen">¥<span data-price>650</span></span>
+              <button class="hero-edit" type="button">修改</button>
+            </div>
+          </div>
+          <div class="roller" id="roller-a" tabindex="0">
+            <div class="needle"></div>
+            <div class="roller-strip"></div>
+          </div>
+          <p class="payout">预计到手 <b data-payout>¥527.36</b></p>
+          <div class="delta-list" id="delta-a"></div>
+          <div class="sheet-foot"><button class="cta" type="button">确认调价</button></div>
+        </section>
+
+        <!-- B：分层收纳 -->
+        <section class="sheet" id="screen-b" hidden>
+          <header class="nav">
+            <h1>调整价格</h1>
+            <button class="nav-x" type="button" aria-label="关闭">×</button>
+          </header>
+          <div class="goods">
+            <div class="goods-pic" aria-hidden="true"></div>
+            <div>
+              <p class="goods-name">SMILEREPUBLIC 起司猫2.0 织物 千鸟格 防滑耐磨增高...</p>
+              <p class="goods-spec">37码 SS级</p>
+            </div>
+          </div>
+          <p class="sec">我的出价</p>
+          <div class="hero">
+            <div class="hero-row">
+              <span class="hero-yen">¥<span data-price>650</span></span>
+              <button class="hero-edit" type="button">修改</button>
+            </div>
+          </div>
+          <div class="roller" id="roller-b" tabindex="0">
+            <div class="needle"></div>
+            <div class="roller-strip"></div>
+          </div>
+          <p class="payout">预计到手 <b data-payout>¥527.36</b></p>
+          <p class="vs" id="vs-b">与在售最低价持平</p>
+
+          <button class="fold-btn" id="fold-ref" type="button">展开价格参考</button>
+          <div class="fold" id="fold-ref-body" hidden>
+            <div class="refs">
+              <div class="ref"><strong>¥778</strong><span>全新市场价</span></div>
+              <div class="ref"><strong>¥496</strong><span>近90天成交均价</span></div>
+            </div>
+            <div class="fold-note">
+              建议出价 ¥498：可进入卖家直降频道。<br>
+              加速建议 ¥570：按当前价九折与在售最低价综合计算。
+            </div>
+          </div>
+
+          <button class="fold-btn" id="fold-floor" type="button">底价托管</button>
+          <div class="fold" id="fold-floor-body" hidden>
+            <p class="floor-line"><b>¥513</b>　预计到手 ¥416.20</p>
+            <p class="trust-desc">底价是出价可下调的下限。平台只在底价以上自动降价，并接受不低于底价的还价。</p>
+          </div>
+          <div class="sheet-foot"><button class="cta" type="button">确认调价</button></div>
+        </section>
+
+        <!-- C：统一建议 -->
+        <section class="sheet" id="screen-c" hidden>
+          <header class="nav">
+            <h1>调整价格</h1>
+            <button class="nav-x" type="button" aria-label="关闭">×</button>
+          </header>
+          <div class="goods">
+            <div class="goods-pic" aria-hidden="true"></div>
+            <div>
+              <p class="goods-name">SMILEREPUBLIC 起司猫2.0 织物 千鸟格 防滑耐磨增高...</p>
+              <p class="goods-spec">37码 SS级</p>
+            </div>
+          </div>
+          <div class="refs">
+            <div class="ref"><strong>¥778</strong><span>全新市场价</span></div>
+            <div class="ref"><strong>¥650</strong><span>在售最低价</span></div>
+            <div class="ref"><strong>¥496</strong><span>近90天成交均价</span></div>
+          </div>
+          <p class="sec">我的出价</p>
+          <div class="chip-row" id="main-c">
+            <div>降至 <b>¥498</b> 可进卖家直降频道</div>
+            <button class="chip-use" id="use-c" type="button">立即使用</button>
+          </div>
+          <button class="more-btn" id="more-c" type="button">查看其他建议</button>
+          <div class="fold" id="more-c-body" hidden>
+            <div class="chip-row">
+              <div>降至 <b>¥570</b> 加速售出</div>
+              <button class="chip-use" id="use-c-alt" type="button">使用</button>
+            </div>
+          </div>
+          <div class="hero">
+            <div class="hero-row">
+              <span class="hero-yen">¥<span data-price>650</span></span>
+              <button class="hero-edit" type="button">修改</button>
+            </div>
+          </div>
+          <div class="roller" id="roller-c" tabindex="0">
+            <div class="needle"></div>
+            <div class="roller-strip"></div>
+          </div>
+          <p class="payout">预计到手 <b data-payout>¥527.36</b></p>
+          <div class="sheet-foot"><button class="cta" type="button">确认调价</button></div>
+        </section>
+
+        <!-- D：底价说人话 -->
+        <section class="sheet" id="screen-d" hidden>
+          <header class="nav">
+            <h1>调整价格</h1>
+            <button class="nav-x" type="button" aria-label="关闭">×</button>
+          </header>
+          <div class="goods">
+            <div class="goods-pic" aria-hidden="true"></div>
+            <div>
+              <p class="goods-name">SMILEREPUBLIC 起司猫2.0 织物 千鸟格 防滑耐磨增高...</p>
+              <p class="goods-spec">37码 SS级</p>
+            </div>
+          </div>
+          <div class="pair">
+            <div>
+              <span>我的出价</span>
+              <strong>¥650</strong>
+            </div>
+            <div>
+              <span>预计到手</span>
+              <strong>¥527.36</strong>
+            </div>
+          </div>
+
+          <div class="trust trust-on">
+            <div class="trust-top">
+              <p>底价托管</p>
+              <div class="switch is-on"></div>
+            </div>
+            <p class="floor-line">
+              底价 <b>¥513</b>
+              <span class="floor-sub">预计到手 ¥416.20</span>
+              <button class="text-btn" type="button">修改底价</button>
+            </p>
+
+            <p class="block-title">平台会做什么</p>
+            <ul class="plain">
+              <li>在底价之上自动降价：卖得快跟随最低价，到手多按行情合理涨跌</li>
+              <li>买家还价高于底价时自动接受</li>
+            </ul>
+
+            <p class="block-title">预计效果</p>
+            <div class="plans">
+              <button class="plan is-on" data-plan="fast" type="button">
+                <h3>卖得快</h3>
+                <span class="plan-tag">94% 卖家选择</span>
+                <small>跟随最低价，预计 10 天售出</small>
+              </button>
+              <button class="plan" data-plan="more" type="button">
+                <h3>到手多</h3>
+                <small>不跟随最低价，预计多赚 ¥15</small>
+              </button>
+            </div>
+          </div>
+          <div class="sheet-foot"><button class="cta" type="button">确认调价</button></div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script src="app.js?v=20260908k"></script>
+</body>
+</html>

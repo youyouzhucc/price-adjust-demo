@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>调整价格</title>
+  <meta http-equiv="Cache-Control" content="no-store" />
+  <style>
+:root {
+  --ink: #111;
+  --muted: #999;
+  --sub: #666;
+  --line: #eee;
+  --fill: #f5f5f5;
+  --tick: #d4d4d4;
+  --tick-strong: #888;
+  --num: "Helvetica Neue", Helvetica, Arial, -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+}
+
+.ref strong,
+.hero-yen,
+.hero-take b,
+.payout b,
+.chip-row b,
+.suggest-row b,
+.goods-bid strong,
+.bid-field strong,
+.ref-stats strong,
+.ref-list-item strong,
+.layer-price input,
+.layer-sheet .take-item span:last-child,
+.layer-sheet .take-net b,
+.floor-line b,
+.fee b,
+.take-net b,
+.pair strong {
+  font-family: var(--num);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  background: #e8e8e8;
+  color: var(--ink);
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.mode-bar {
+  display: flex;
+  background: #fff;
+  padding: 3px;
+  border-radius: 999px;
+}
+.mode-btn {
+  border: 0;
+  background: transparent;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: #888;
+  cursor: pointer;
+}
+.mode-btn.is-on {
+  background: #111;
+  color: #fff;
+}
+
+.phone {
+  width: 390px;
+  height: 780px;
+  background: #fff;
+  border-radius: 36px;
+  border: 10px solid #1c1c1e;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.16);
+  overflow: hidden;
+  position: relative;
+}
+
+.sheet {
+  height: 100%;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 16px 12px;
+  overflow: auto;
+}
+.sheet[hidden] { display: none; }
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 32px;
+  margin-bottom: 6px;
+  flex: none;
+}
+.nav h1 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+.nav-x {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: none;
+  font-size: 26px;
+  line-height: 1;
+  color: #222;
+  width: 32px;
+  height: 32px;
+}
+
+.mod {
+  background: var(--fill);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+.mod-title {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.mod-title-sub {
+  font-size: 11px;
+  font-weight: 400;
+  color: #111;
+}
+.mod-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid #e8e8e8;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.65;
+}
+.mod-line-body { min-width: 0; flex: 1; }
+.mod-line-hd {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.mod-line-body strong,
+.mod-line strong {
+  color: #111;
+  font-weight: 600;
+}
+.mod-line p { margin: 0; }
+.more-ico {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  position: relative;
+}
+.more-ico::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid #999;
+  border-top: 1.5px solid #999;
+  transform: translate(-70%, -50%) rotate(45deg);
+}
+.layer-title {
+  margin: 8px 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+}
+.layer-sheet.is-ref {
+  max-height: 88%;
+  overflow: auto;
+  padding: 8px 16px 16px;
+}
+.ref-head {
+  position: relative;
+}
+.ref-head .layer-title { margin: 4px 0 12px; }
+.ref-close {
+  position: absolute;
+  right: 0;
+  top: 0;
+  border: 0;
+  background: none;
+  font-size: 22px;
+  line-height: 1;
+  color: #222;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+}
+.ref-chips {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  overflow-x: auto;
+}
+.ref-chips button {
+  flex: none;
+  border: 1px solid #e6e6e6;
+  background: #fff;
+  color: #333;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.ref-chips button.is-on {
+  border-color: #111;
+  color: #111;
+  font-weight: 600;
+}
+.ref-sec {
+  margin: 10px 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.ref-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  text-align: center;
+  padding: 4px 0 12px;
+}
+.ref-stats strong {
+  display: block;
+  font-size: 18px;
+}
+.ref-stats span {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #999;
+}
+.ref-tabs {
+  display: flex;
+  gap: 20px;
+  border-bottom: 1px solid #eee;
+}
+.ref-tabs button {
+  border: 0;
+  background: none;
+  padding: 8px 0;
+  font-size: 13px;
+  color: #999;
+  cursor: pointer;
+}
+.ref-tabs button.is-on {
+  color: #111;
+  font-weight: 600;
+  box-shadow: inset 0 -2px 0 #111;
+}
+.ref-sell {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 12px;
+  color: #666;
+}
+.ref-sell span { grid-column: 1; }
+.ref-sell b {
+  grid-column: 2;
+  grid-row: 1;
+  font-size: 14px;
+  color: #111;
+  text-align: right;
+}
+.ref-sell i {
+  grid-column: 2;
+  font-style: normal;
+  font-size: 10px;
+  color: #999;
+  text-align: right;
+}
+.ref-sell em {
+  grid-column: 1;
+  font-style: normal;
+  font-size: 11px;
+  color: #bbb;
+}
+.ref-list-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+  color: #666;
+}
+.ref-list-item:last-child { border-bottom: 0; }
+.ref-list-item strong {
+  font-size: 16px;
+  color: #111;
+}
+.mod .goods {
+  padding: 0;
+  border: 0;
+}
+.mod .hero { padding: 0; }
+.mod .roller { margin: 8px -12px 0; }
+.mod.trust { margin-top: 0; }
+
+.goods {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 4px 0 12px;
+}
+.goods-pic {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 28% 28%, #fff 0 7px, transparent 8px),
+    linear-gradient(145deg, #d8d8d8 0 42%, #2a2a2a 42%);
+  flex: none;
+}
+.goods-name {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.goods-main {
+  flex: 1;
+  min-width: 0;
+}
+.goods-spec {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.goods-bid {
+  flex: none;
+  text-align: right;
+}
+.goods-bid span {
+  display: block;
+  font-size: 11px;
+  color: #999;
+}
+.goods-bid strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 16px;
+  color: #111;
+}
+
+.sec {
+  margin: 14px 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.bid-field {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 2px 0 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+  color: #666;
+}
+.bid-field strong {
+  font-size: 16px;
+  color: #111;
+}
+
+.refs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.ref {
+  background: var(--fill);
+  border-radius: 8px;
+  padding: 8px 4px 8px;
+  text-align: center;
+}
+.ref strong {
+  display: block;
+  font-size: 16px;
+}
+.ref span {
+  display: block;
+  margin-top: 3px;
+  font-size: 10px;
+  color: #999;
+}
+
+.chip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--fill);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #333;
+}
+.chip-row b { font-weight: 600; }
+.chip-static { cursor: default; }
+.chip-use {
+  flex: none;
+  border: 0;
+  background: #111;
+  color: #fff;
+  font-size: 11px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.hero { text-align: center; padding: 4px 0; }
+.hero-take {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-weight: 400;
+  color: #111;
+}
+.hero-take b {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111;
+}
+.hero-desc {
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  background: var(--fill);
+  border-radius: 8px;
+  font-size: 12px;
+  color: #333;
+  line-height: 1.5;
+  text-align: left;
+}
+.hero-desc span {
+  display: block;
+}
+.hero-desc span + span {
+  margin-top: 6px;
+}
+
+.suggest-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: var(--fill);
+  border-radius: 8px;
+  font-size: 12px;
+  color: #333;
+  line-height: 1.45;
+}
+.suggest-row > span {
+  min-width: 0;
+}
+.rank {
+  margin: 8px 0 0;
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #111;
+  color: #fff;
+}
+.rank.is-mid {
+  background: #f0f0f0;
+  color: #666;
+  font-weight: 400;
+}
+.ref.is-hit {
+  outline: 1px solid #111;
+}
+.hero-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+}
+.hero-yen {
+  font-size: 28px;
+  line-height: 1;
+}
+.hero-edit,
+.text-btn {
+  border: 0;
+  background: none;
+  color: #333;
+  font-size: 13px;
+  padding: 0;
+  cursor: pointer;
+}
+.hero-edit::after,
+.text-btn::after {
+  content: "";
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-left: 2px;
+  vertical-align: 0;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='black' d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.04a1 1 0 0 0 0-1.41l-2.51-2.51a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 2-1.66z'/></svg>") center / contain no-repeat;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='black' d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.04a1 1 0 0 0-1.41l-2.51-2.51a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 2-1.66z'/></svg>") center / contain no-repeat;
+}
+
+.ruler-static { padding: 8px 0 4px; }
+.ruler-static-track {
+  height: 40px;
+  border-radius: 4px;
+  background: repeating-linear-gradient(90deg, #cfcfcf 0 2px, #f3f3f3 2px 8px);
+  position: relative;
+  overflow: hidden;
+}
+.ruler-static-track .needle { left: 38%; }
+.ruler-static-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 10px 0;
+  font-size: 11px;
+  color: #bbb;
+}
+
+.roller {
+  position: relative;
+  height: 86px;
+  margin: 8px -16px 0;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+.roller:active { cursor: grabbing; }
+.roller-strip {
+  position: absolute;
+  top: 36px;
+  height: 48px;
+  will-change: transform;
+  background: repeating-linear-gradient(90deg, #d8d8d8 0 1px, #f6f6f6 1px 6px);
+}
+.tick {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  background: var(--tick);
+}
+.tick.is-10 { height: 18px; }
+.tick.is-50 { height: 26px; background: var(--tick-strong); }
+.tick-label {
+  position: absolute;
+  top: 30px;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: #b0b0b0;
+}
+.anchor {
+  position: absolute;
+  top: -24px;
+  transform: translateX(-50%);
+  border: 0;
+  background: #f0f0f0;
+  color: #666;
+  font-size: 10px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  cursor: pointer;
+  line-height: 1.2;
+  z-index: 4;
+}
+.anchor.is-on {
+  background: #111;
+  color: #fff;
+}
+.anchor.is-current:not(.is-on) {
+  background: #111;
+  color: #fff;
+}
+.anchor.is-suggest {
+  background: #111;
+  color: #fff;
+}
+.anchor.is-floor {
+  background: #e8e8e8;
+  color: #333;
+}
+.suggest-pin {
+  position: absolute;
+  left: 12px;
+  top: 6px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f3f3f3;
+  padding: 4px 5px 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  color: #333;
+  white-space: nowrap;
+}
+
+.needle {
+  position: absolute;
+  top: 34px;
+  bottom: 4px;
+  left: 50%;
+  width: 2px;
+  background: #111;
+  transform: translateX(-1px);
+  z-index: 5;
+  pointer-events: none;
+}
+.needle::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid #111;
+}
+.needle-tag {
+  position: absolute;
+  left: 50%;
+  top: -26px;
+  transform: translateX(-50%);
+  background: #111;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.roller-note {
+  margin: 6px 0 0;
+  text-align: center;
+  font-size: 11px;
+  color: #999;
+}
+
+.payout {
+  text-align: center;
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #666;
+}
+.payout b { color: #111; font-weight: 600; }
+
+.take {
+  margin: 10px 0 0;
+  padding: 4px 2px 0;
+}
+.take-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border: 0;
+  background: none;
+  padding: 8px 0;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+}
+.take-net { cursor: default; }
+.take-net b { font-size: 15px; }
+.take-val {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #111;
+}
+.chev {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid #999;
+  border-bottom: 1.5px solid #999;
+  transform: rotate(45deg);
+  margin-top: -3px;
+}
+.take.is-open .chev { transform: rotate(-135deg); margin-top: 2px; }
+.take-items {
+  padding: 0 0 6px 0;
+  font-size: 12px;
+  color: #888;
+}
+.take-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+}
+.layer-mask {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+.layer-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  padding: 8px 20px 24px;
+}
+.layer-handle {
+  display: block;
+  width: 36px;
+  height: 4px;
+  margin: 2px auto 10px;
+  background: #ddd;
+  border-radius: 2px;
+}
+.layer-price {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0 14px;
+  border-bottom: 1px solid #eee;
+}
+.layer-price > span {
+  font-size: 13px;
+  color: #333;
+  flex: none;
+}
+.layer-price input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  font-size: 28px;
+  padding: 0;
+  outline: none;
+  background: none;
+  -moz-appearance: textfield;
+}
+.layer-price input::-webkit-outer-spin-button,
+.layer-price input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+.step {
+  display: flex;
+  flex-direction: column;
+  width: 16px;
+  flex: none;
+}
+.step button {
+  height: 14px;
+  border: 0;
+  background: none;
+  padding: 0;
+  position: relative;
+  cursor: pointer;
+}
+.step button::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-left: 1.2px solid #111;
+  border-top: 1.2px solid #111;
+}
+#step-up::before { transform: translate(-50%, -25%) rotate(45deg); }
+#step-down::before { transform: translate(-50%, -75%) rotate(-135deg); }
+.layer-fees { padding-top: 6px; }
+.layer-sheet .take-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  font-size: 13px;
+  color: #888;
+}
+.layer-sheet .take-net {
+  margin-top: 4px;
+  color: #111;
+  font-size: 15px;
+  font-weight: 600;
+}
+#layer-items { padding: 0 0 0 12px; }
+#layer-items .take-item { padding: 5px 0; font-size: 12px; }
+.layer-sheet .cta { margin-top: 18px; }
+.link {
+  border: 0;
+  background: none;
+  color: #333;
+  font-size: 12px;
+  padding: 0;
+  margin-left: 4px;
+  cursor: pointer;
+}
+
+.fee {
+  margin-top: 8px;
+  background: var(--fill);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.7;
+}
+.fee b { color: #111; font-weight: 600; }
+
+.trust {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #f7f7f7;
+}
+.trust-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.trust-top p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.trust-desc {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: #888;
+  line-height: 1.45;
+}
+.floor-line {
+  margin: 10px 0 0;
+  font-size: 15px;
+}
+.floor-line b { font-size: 16px; }
+.flash {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: #333;
+  background: #ececec;
+  border-radius: 6px;
+  padding: 8px 10px;
+  line-height: 1.45;
+}
+
+.plans {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+.plan {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+}
+.plan.is-on { border-color: #111; }
+.plan h3 {
+  margin: 0;
+  font-size: 13px;
+}
+.plan-tag {
+  display: inline-block;
+  font-size: 10px;
+  color: #666;
+  background: #f3f3f3;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.plan small {
+  flex: 1 0 100%;
+  margin: 2px 0 0;
+  color: #888;
+  font-size: 10px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.switch {
+  width: 42px;
+  height: 26px;
+  border: 0;
+  border-radius: 999px;
+  background: #d8d8d8;
+  position: relative;
+  flex: none;
+  cursor: pointer;
+  padding: 0;
+}
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  transition: left 0.18s ease;
+}
+.switch.is-on { background: #111; }
+.switch.is-on::after { left: 18px; }
+
+.sheet-foot {
+  margin-top: auto;
+  padding-top: 12px;
+  flex: none;
+}
+.cta {
+  width: 100%;
+  border: 0;
+  background: #111;
+  color: #fff;
+  height: 46px;
+  border-radius: 23px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mode-cap {
+  margin: 0;
+  font-size: 12px;
+  color: #888;
+}
+
+.delta-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.delta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--fill);
+  border-radius: 8px;
+  padding: 10px 12px;
+  border: 0;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;
+  color: #111;
+}
+.delta small {
+  display: block;
+  margin-top: 3px;
+  color: #888;
+  font-size: 11px;
+}
+.delta-use {
+  flex: none;
+  font-size: 11px;
+  color: #111;
+}
+
+.vs {
+  text-align: center;
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #888;
+}
+
+.fold-btn,
+.more-btn {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  border: 0;
+  background: var(--fill);
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 13px;
+  color: #111;
+  cursor: pointer;
+}
+.more-btn {
+  background: none;
+  padding: 8px 2px 0;
+  color: #666;
+  font-size: 12px;
+}
+.fold {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: var(--fill);
+  border-radius: 8px;
+}
+.fold-note {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.55;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 4px 0 12px;
+}
+.pair div {
+  background: var(--fill);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.pair span {
+  display: block;
+  font-size: 11px;
+  color: #999;
+}
+.pair strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 16px;
+}
+
+.block-title {
+  margin: 14px 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.plain {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.6;
+}
+.floor-sub {
+  margin-left: 6px;
+  font-size: 12px;
+  color: #888;
+  font-weight: 400;
+}
+
+@media (max-width: 900px) {
+  .phone { width: min(390px, 100%); }
+}
+
+</style>
+</head>
+<body>
+  <div class="page">
+    <main class="stage">
+      <div class="phone">
+        <!-- 综合 -->
+        <section class="sheet" id="screen-all">
+          <header class="nav">
+            <h1>调整价格</h1>
+            <button class="nav-x" type="button" aria-label="关闭">×</button>
+          </header>
+          <div class="mod">
+            <p class="mod-title">商卡</p>
+            <div class="goods">
+              <div class="goods-pic" aria-hidden="true"></div>
+              <div class="goods-main">
+                <p class="goods-name">SMILEREPUBLIC 起司猫2.0 织物 千鸟格 防滑耐磨增高...</p>
+                <p class="goods-spec">SS级 · 37码</p>
+              </div>
+            </div>
+            <div class="mod-line">
+              <div class="mod-line-body">
+                <div class="mod-line-hd">
+                  <strong>品相和价格解读</strong>
+                  <span class="mod-title-sub">当前出价 ¥650</span>
+                </div>
+                <p>SS 级 · 仅试穿，无可见瑕疵。品相接近全新，低于市场价 98 折（¥1,263）可获商品露出。</p>
+              </div>
+              <button class="more-ico" type="button" data-open="ref" aria-label="更多"></button>
+            </div>
+          </div>
+
+          <div class="mod">
+            <div class="hero">
+              <div class="hero-row">
+                <span class="hero-yen">¥<span data-price>498</span></span>
+                <button class="hero-edit" type="button">修改</button>
+              </div>
+              <p class="hero-take">预计到手 <b data-payout>¥404.04</b></p>
+            </div>
+            <div class="roller" id="roller-all" tabindex="0">
+              <div class="needle"><span class="needle-tag" id="expo-tag">曝光 +1,824次</span></div>
+              <div class="roller-strip"></div>
+            </div>
+          </div>
+
+          <div class="mod trust" id="trust-all">
+            <div class="trust-top">
+              <p>底价托管</p>
+              <button class="switch is-on" id="trust-all-switch" type="button" aria-pressed="true"></button>
+            </div>
+            <p class="trust-desc" id="trust-all-off" hidden>开启后自动降价并接受还价，都不会低于底价</p>
+            <div id="trust-all-body">
+              <p class="floor-line">
+                <b>¥<span id="floor-all-num">470</span></b>
+                <button class="text-btn" id="edit-floor-all" type="button">修改底价</button>
+              </p>
+              <p class="trust-desc">自动降价不会低于底价；还价不低于底价时自动接受</p>
+              <div class="plans">
+                <button class="plan is-on" data-plan="fast" type="button">
+                  <h3>卖得快</h3>
+                  <span class="plan-tag">94% 卖家选择</span>
+                  <small>跟随最低价，预计 10 天售出</small>
+                </button>
+                <button class="plan" data-plan="more" type="button">
+                  <h3>到手多</h3>
+                  <small>不跟随最低价，预计多赚 ¥15</small>
+                </button>
+              </div>
+              <p class="flash" id="flash-all" hidden>已到卖家直降价，可进入直降频道</p>
+            </div>
+          </div>
+          <div class="sheet-foot"><button class="cta" type="button">确认调价</button></div>
+        </section>
+
+        <div class="layer" id="cond-layer" hidden>
+          <button class="layer-mask" id="cond-mask" type="button" aria-label="关闭"></button>
+          <div class="layer-sheet">
+            <i class="layer-handle"></i>
+            <p class="layer-title">品相解读</p>
+            <div class="ref-list">
+              <div class="ref-list-item"><span>成色</span><strong>SS 级</strong></div>
+              <div class="ref-list-item"><span>鉴定</span><strong>鞋面有使用痕迹</strong></div>
+              <div class="ref-list-item"><span>出价建议</span><strong>不宜按全新价</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer" id="ref-layer" hidden>
+          <button class="layer-mask" id="ref-mask" type="button" aria-label="关闭"></button>
+          <div class="layer-sheet is-ref">
+            <div class="ref-head">
+              <p class="layer-title">价格参考</p>
+              <button class="ref-close" id="ref-close" type="button" aria-label="关闭">×</button>
+            </div>
+            <div class="ref-filters">
+              <div class="ref-chips">
+                <button type="button">全部规格</button>
+                <button type="button" class="is-on">37码 SS级</button>
+              </div>
+              <div class="ref-chips">
+                <button type="button">全部成色</button>
+                <button type="button" class="is-on">SS级</button>
+                <button type="button">已使用</button>
+              </div>
+            </div>
+            <p class="ref-sec">价格行情</p>
+            <div class="ref-stats">
+              <div><strong>¥778</strong><span>全新市场价</span></div>
+              <div><strong>¥650</strong><span>在售最低价</span></div>
+              <div><strong>¥496</strong><span>近90天成交均价</span></div>
+            </div>
+            <div class="ref-tabs">
+              <button type="button" class="is-on">在售商品 (6)</button>
+              <button type="button">成交记录 (128)</button>
+            </div>
+            <div class="ref-sells">
+              <div class="ref-sell"><span>未使用 · 37码</span><b>¥650</b><i>同成色最低</i><em>48人浏览</em></div>
+              <div class="ref-sell"><span>SS级 · 37码</span><b>¥680</b><em>36人浏览</em></div>
+              <div class="ref-sell"><span>SS级 · 37码</span><b>¥698</b><em>22人浏览</em></div>
+              <div class="ref-sell"><span>已使用 · 37码</span><b>¥620</b><em>15人浏览</em></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer" id="fee-layer" hidden>
+          <button class="layer-mask" id="fee-mask" type="button" aria-label="关闭"></button>
+          <div class="layer-sheet">
+            <i class="layer-handle"></i>
+            <div class="layer-price">
+              <span>调价至</span>
+              <input id="layer-input" type="number" inputmode="numeric" />
+              <div class="step">
+                <button id="step-up" type="button" aria-label="加"></button>
+                <button id="step-down" type="button" aria-label="减"></button>
+              </div>
+            </div>
+            <div class="layer-fees">
+              <div class="take-item"><span>服务费</span><span id="layer-fee">-¥122.64</span></div>
+              <div id="layer-items"></div>
+              <div class="take-item take-net"><span>预计到手</span><b id="layer-pay">¥527.36</b></div>
+            </div>
+            <button class="cta" id="layer-ok" type="button">确认</button>
+          </div>
+        </div>
+</div>
+    </main>
+  </div>
+  <script>
+const M = {
+  mine: 650,
+  lowest: 650,
+  suggest: 498,
+  recommend: 570,
+  avg90: 496,
+  market: 778,
+  floor: 470,
+};
+
+const MIN = 450;
+const MAX = 715;
+const PX = 6;
+const FEE = 462.45 / 570;
+
+const CAP = {
+  current: "现有页面",
+  all: "综合：商卡展示当前出价，建议用成色和行情解读",
+  a: "A 两条差值并列，建议仍在抢注意力",
+  b: "B 首屏干净，建议和底价都埋得过深",
+  c: "C 只推直降 498，跨度过大",
+  d: "D 底价清楚，但出价无法调整",
+};
+
+const $ = (id) => document.getElementById(id);
+
+function payout(p) {
+  return (p * FEE).toFixed(2);
+}
+
+function fees(p) {
+  const total = p * (1 - FEE);
+  const tech = p * 0.08;
+  const transfer = p * 0.0087;
+  const store = 0;
+  const ops = Math.max(0, total - tech - transfer - store);
+  return {
+    total,
+    lines: [
+      { name: "技术服务费 8.0%", value: tech },
+      { name: "操作服务费", value: ops },
+      { name: "转账服务费", value: transfer },
+      { name: "仓储服务费", value: store },
+    ],
+  };
+}
+
+function yen(n) {
+  return `¥${n}`;
+}
+
+function makeRoller(root, { value, marks, onChange, getMin, onAnchor, onTap }) {
+  const strip = root.querySelector(".roller-strip");
+  let markList = marks;
+  let price = value;
+  let dragging = false;
+  let moved = false;
+  let startX = 0;
+  let startPrice = value;
+
+  function minP() {
+    return getMin ? getMin() : MIN;
+  }
+
+  function left(p) {
+    return (p - MIN) * PX;
+  }
+
+  function stripX(p) {
+    return root.clientWidth / 2 - left(p);
+  }
+
+  function build() {
+    strip.style.width = `${(MAX - MIN) * PX}px`;
+    let html = "";
+    for (let v = MIN; v <= MAX; v += 2) {
+      const x = left(v);
+      if (v % 50 === 0) {
+        html += `<i class="tick is-50" style="left:${x}px"></i>`;
+        html += `<span class="tick-label" style="left:${x}px">${v}</span>`;
+      } else if (v % 10 === 0) {
+        html += `<i class="tick is-10" style="left:${x}px"></i>`;
+      }
+    }
+    markList.forEach((m) => {
+      if (m.chip) {
+        html += `<div class="anchor-chip ${m.cls || ""}" style="left:${left(m.price)}px" data-price="${m.price}"><span>${m.label}</span><button class="chip-use" type="button" data-go="${m.price}">${m.action}</button></div>`;
+      } else {
+        html += `<button class="anchor ${m.cls || ""}" style="left:${left(m.price)}px" data-price="${m.price}" type="button">${m.label}</button>`;
+      }
+    });
+    strip.innerHTML = html;
+    apply(false);
+  }
+
+  function apply(animate) {
+    strip.style.transition = animate ? "transform 0.28s ease" : "none";
+    strip.style.transform = `translate3d(${stripX(price)}px,0,0)`;
+    strip.querySelectorAll(".anchor, .anchor-chip").forEach((el) => {
+      el.classList.toggle("is-on", Number(el.dataset.price) === price);
+    });
+    strip.querySelectorAll("[data-go]").forEach((btn) => {
+      btn.hidden = Number(btn.dataset.go) === price;
+    });
+  }
+
+  function set(next, animate) {
+    price = Math.round(Math.min(MAX, Math.max(minP(), next)));
+    apply(animate);
+    onChange(price);
+  }
+
+  function setMarks(next) {
+    markList = next;
+    build();
+  }
+
+  root.addEventListener("pointerdown", (e) => {
+    if (e.target.closest(".anchor, .anchor-chip, .suggest-pin")) return;
+    dragging = true;
+    moved = false;
+    startX = e.clientX;
+    startPrice = price;
+    root.setPointerCapture(e.pointerId);
+  });
+  root.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    if (Math.abs(e.clientX - startX) > 6) moved = true;
+    set(startPrice - (e.clientX - startX) / PX, false);
+  });
+  const end = () => {
+    if (!dragging) return;
+    dragging = false;
+    if (!moved && onTap) onTap();
+    else apply(true);
+  };
+  root.addEventListener("pointerup", end);
+  root.addEventListener("pointercancel", end);
+  root.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    set(price + e.deltaX / PX + e.deltaY / PX, false);
+  }, { passive: false });
+  strip.addEventListener("click", (e) => {
+    const btn = e.target.closest(".anchor, .anchor-chip");
+    if (!btn) return;
+    const p = Number(btn.dataset.price);
+    if (onAnchor) onAnchor(p);
+    set(p, true);
+  });
+
+  build();
+  window.addEventListener("resize", () => apply(false));
+  return { set, get: () => price, refresh: apply, setMarks };
+}
+
+const all = {
+  trust: true,
+  floor: M.floor,
+  feeOpen: false,
+};
+
+function marksAll() {
+  const list = [
+    { price: M.mine, label: "当前出价" },
+  ];
+  if (all.trust) list.push({ price: all.floor, label: "底价", cls: "is-floor" });
+  return list;
+}
+
+function fillFees(price) {
+  const f = fees(price);
+  $("layer-fee").textContent = `-¥${f.total.toFixed(2)}`;
+  $("layer-pay").textContent = yen(payout(price));
+  $("layer-items").innerHTML = f.lines
+    .map((l) => `<div class="take-item"><span>${l.name}</span><span>-¥${l.value.toFixed(2)}</span></div>`)
+    .join("");
+}
+
+function expoTag(price) {
+  const n = (M.mine - price) * 12;
+  const sign = n >= 0 ? "+" : "";
+  return `曝光 ${sign}${n.toLocaleString("zh-CN")}次`;
+}
+
+function renderAll(price) {
+  const sheet = $("screen-all");
+  sheet.querySelector("[data-price]").textContent = String(price);
+  sheet.querySelector("[data-payout]").textContent = yen(payout(price));
+  $("expo-tag").textContent = expoTag(price);
+  fillFees(price);
+
+  $("floor-all-num").textContent = String(all.floor);
+  $("trust-all-switch").classList.toggle("is-on", all.trust);
+  $("trust-all-switch").setAttribute("aria-pressed", String(all.trust));
+  $("trust-all-body").hidden = !all.trust;
+  $("trust-all-off").hidden = all.trust;
+  $("flash-all").hidden = !(all.trust && all.floor <= 450);
+}
+
+function clampFloor(n) {
+  const maxFloor = Math.min(rollerAll.get() - 1, M.suggest - 1);
+  return Math.min(maxFloor, Math.max(MIN, Math.round(n)));
+}
+
+const rollerAll = makeRoller($("roller-all"), {
+  value: M.suggest,
+  marks: marksAll(),
+  getMin: () => Math.max(all.trust ? all.floor + 1 : MIN, M.suggest),
+  onChange: renderAll,
+});
+
+function syncAllMarks() {
+  rollerAll.setMarks(marksAll());
+  rollerAll.set(rollerAll.get(), false);
+}
+
+renderAll(M.suggest);
+
+$("screen-all").querySelector(".hero-edit").addEventListener("click", () => {
+  $("layer-input").value = String(rollerAll.get());
+  fillFees(rollerAll.get());
+  $("ref-layer").hidden = true;
+  $("cond-layer").hidden = true;
+  $("fee-layer").hidden = false;
+  $("layer-input").focus();
+});
+function hideLayers() {
+  $("fee-layer").hidden = true;
+  $("ref-layer").hidden = true;
+  $("cond-layer").hidden = true;
+}
+$("screen-all").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-open]");
+  if (!btn) return;
+  hideLayers();
+  $(`${btn.dataset.open}-layer`).hidden = false;
+});
+$("ref-mask").addEventListener("click", hideLayers);
+$("ref-close").addEventListener("click", hideLayers);
+$("cond-mask").addEventListener("click", hideLayers);
+$("ref-layer").addEventListener("click", (e) => {
+  const tab = e.target.closest(".ref-tabs button");
+  if (tab) {
+    $("ref-layer").querySelectorAll(".ref-tabs button").forEach((b) => b.classList.toggle("is-on", b === tab));
+  }
+  const chip = e.target.closest(".ref-chips button");
+  if (!chip) return;
+  chip.parentElement.querySelectorAll("button").forEach((b) => b.classList.toggle("is-on", b === chip));
+});
+function layerPrice() {
+  return Number($("layer-input").value);
+}
+
+$("layer-input").addEventListener("input", () => {
+  const n = layerPrice();
+  if (Number.isFinite(n) && n > 0) fillFees(n);
+});
+$("step-up").addEventListener("click", () => {
+  const n = Math.round(layerPrice() || 0) + 1;
+  $("layer-input").value = String(n);
+  fillFees(n);
+});
+$("step-down").addEventListener("click", () => {
+  const n = Math.max(1, Math.round(layerPrice() || 1) - 1);
+  $("layer-input").value = String(n);
+  fillFees(n);
+});
+$("layer-ok").addEventListener("click", () => {
+  const n = Number($("layer-input").value);
+  if (Number.isFinite(n)) rollerAll.set(Math.max(n, M.suggest), true);
+  $("fee-layer").hidden = true;
+});
+$("fee-mask").addEventListener("click", () => {
+  $("fee-layer").hidden = true;
+});
+$("trust-all-switch").addEventListener("click", () => {
+  all.trust = !all.trust;
+  if (all.trust) all.floor = clampFloor(all.floor);
+  syncAllMarks();
+  renderAll(rollerAll.get());
+});
+$("edit-floor-all").addEventListener("click", () => {
+  const raw = window.prompt("请输入底价", String(all.floor));
+  if (raw == null) return;
+  const n = Number(raw.replace(/[^\d.]/g, ""));
+  if (!Number.isFinite(n)) return;
+  all.floor = clampFloor(n);
+  syncAllMarks();
+  renderAll(rollerAll.get());
+});
+$("screen-all").querySelectorAll(".plan").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    $("screen-all").querySelectorAll(".plan").forEach((el) => el.classList.toggle("is-on", el === btn));
+  });
+});
+</script>
+</body>
+</html>
