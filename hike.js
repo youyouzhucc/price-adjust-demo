@@ -824,67 +824,19 @@ const LEVEL_LABEL = { 1: "轻松", 2: "适中", 3: "费力", 4: "硬核" };
 const MONTHS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 
 const PIC = {
-  trail: [
-    ["1551632811-561732d1e306", "林间步道"],
-    ["1501555085422-4cf6b1d89589", "登山鞋与土路"],
-    ["1476041026529-2860f83c9e8e", "山脊行人"],
-    ["1418065460487-3e41a6c84dc5", "雾林"],
-  ],
-  forest: [
-    ["1441974231531-c6227db76b6e", "阳光森林"],
-    ["1470071459604-3b5ec3a7fe05", "绿山雾"],
-    ["1511497584788-876760111969", "松林"],
-    ["1542273917363-3b53129a4b7a", "密林"],
-  ],
-  lake: [
-    ["1501785888041-af3ef285b470", "湖光山色"],
-    ["1439066615861-d1af74d74000", "湖面"],
-    ["1472214103451-9374bd1c798e", "水边远山"],
-  ],
-  temple: [
-    ["1545569341-9eb8b30979d9", "寺庙廊道"],
-    ["1493976040374-85c8e12f0c0e", "秋塔"],
-    ["1528164344705-47542687000d", "水边古建"],
-    ["1564507004663-b6dfb3c824d5", "中式屋檐"],
-  ],
-  maple: [
-    ["1507041957456-9c397ce39c97", "红叶小径"],
-    ["1477414348463-c0eb7f6e5e5c", "秋色"],
-    ["1493976040374-85c8e12f0c0e", "秋寺"],
-  ],
-  cherry: [
-    ["1522383225653-ed111181a831", "樱花"],
-    ["1490750967868-88aa4c76bc1c", "春花"],
-  ],
-  plum: [
-    ["1455659817273-f4c19ea16d58", "花枝"],
-    ["1516205651411-a7684e3b92c5", "春树"],
-  ],
-  bamboo: [
-    ["1528183429752-a97d0bf47f68", "竹海"],
-    ["1542273917363-3b53129a4b7a", "绿荫"],
-  ],
-  rock: [
-    ["1469474968028-56623f02e42e", "岩石与光"],
-    ["1464822759023-fed622ff2c3b", "山石"],
-    ["1426604966848-d7adac402bff", "岩壁"],
-  ],
-  village: [
-    ["1500382017468-9049fed737ef", "田园"],
-    ["1472214103451-9374bd1c798e", "山村远景"],
-  ],
-  fall: [
-    ["1432405972618-c60b0225b8f9", "瀑布"],
-    ["1469474968028-56623f02e42e", "山溪"],
-  ],
-  tea: [
-    ["1564890369478-c89ca6d9cde9", "茶"],
-    ["1500382017468-9049fed737ef", "茶垄"],
-  ],
-  pond: [
-    ["1439066615861-d1af74d74000", "水潭"],
-    ["1470071459604-3b5ec3a7fe05", "林中水气"],
-  ],
+  trail: [["trail", "林间步道"], ["ridge", "山脊"]],
+  forest: [["forest", "密林"], ["mist", "山雾"]],
+  lake: [["lake", "湖光"]],
+  temple: [["temple", "寺庙"]],
+  maple: [["maple", "秋叶"]],
+  cherry: [["flower", "春花"]],
+  plum: [["flower", "花枝"]],
+  bamboo: [["bamboo", "竹海"]],
+  rock: [["rock", "山石"]],
+  village: [["village", "田园"]],
+  fall: [["fall", "瀑布"]],
+  tea: [["tea", "茶园"]],
+  pond: [["pond", "水潭"]],
 };
 
 const SCENE_PIC = {
@@ -1291,8 +1243,8 @@ const EXTRA = {
   },
 };
 
-function img(id, w = 1100) {
-  return `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=70`;
+function img(id) {
+  return `img/${id}.svg`;
 }
 
 function photosOf(route) {
@@ -1371,7 +1323,7 @@ function renderList() {
       (r) => `
       <button class="card" type="button" data-open="${r.id}">
         <div class="card-cover" style="background-image:url('${r.cover}')">
-          <span class="lv-pill lv-${r.level}">${LEVEL_LABEL[r.level]}</span>
+          <span class="lv-pill">${LEVEL_LABEL[r.level]}</span>
           <i>${r.area} · ${r.km}</i>
         </div>
         <div class="card-body">
@@ -1465,7 +1417,7 @@ function renderDetail(id) {
         <ol class="trail">
           ${r.trail.map((p, i) => {
             const pic = r.photos[i % r.photos.length];
-            return `<li><img src="${img(pic.key, 400)}" alt="${p.t}"><div><strong>${i + 1}. ${p.t}</strong><em>${p.d}</em></div></li>`;
+            return `<li><img src="${img(pic.key)}" alt=""><div><strong>${i + 1}. ${p.t}</strong><em>${p.d}</em></div></li>`;
           }).join("")}
         </ol>
       </section>
