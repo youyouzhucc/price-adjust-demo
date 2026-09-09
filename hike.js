@@ -1248,53 +1248,55 @@ function img(id) {
 }
 
 const PT = {
-  lingyan: [31.2618, 120.4945],
-  lingyansi: [31.2642, 120.4972],
-  dajiao: [31.2686, 120.5012],
-  yangchang: [31.2724, 120.5054],
-  baima: [31.2776, 120.5096],
-  tianping: [31.2698, 120.5132],
-  huashan: [31.2862, 120.4578],
-  tianchi: [31.2910, 120.4482],
-  hejiu: [31.2954, 120.4520],
-  qiong: [31.2756, 120.4186],
-  qiongSouth: [31.2702, 120.4224],
-  sunwu: [31.2678, 120.4118],
-  yuping: [31.2824, 120.4280],
-  zhenshan: [31.2882, 120.4354],
-  wufeng: [31.2840, 120.4452],
-  lu: [31.3012, 120.4476],
-  huangguan: [31.3184, 120.4418],
-  yangshan: [31.3452, 120.4482],
-  shushan: [31.3564, 120.4624],
-  dayang: [31.3360, 120.4322],
-  wulong: [31.3204, 120.4018],
-  fenghuang: [31.3122, 120.4104],
-  chouxiang: [31.1648, 120.2648],
-  piaomiao: [31.1782, 120.2778],
-  yuli: [31.1856, 120.2924],
-  dongshan: [31.0784, 120.4182],
-  molifeng: [31.0718, 120.4254],
-  biluo: [31.0852, 120.4306],
-  wangshan: [31.2384, 120.6182],
-  qianyuan: [31.2318, 120.6116],
-  jiulong: [31.2276, 120.6224],
-  shangfang: [31.2482, 120.6284],
-  shihu: [31.2416, 120.6352],
-  yaofeng: [31.2278, 120.4782],
-  dengwei: [31.2482, 120.3478],
-  xuanmu: [31.2416, 120.3376],
-  yushanN: [31.6624, 120.7282],
-  longtan: [31.6682, 120.7354],
-  jianmen: [31.6548, 120.7426],
-  yufeng: [31.3882, 120.9584],
-  qiyang: [31.1482, 120.6384],
+  lingyan: [31.2550, 120.4918],
+  lingyansi: [31.2600, 120.4947],
+  lingyanRidge: [31.2638, 120.4976],
+  dajiao: [31.2672, 120.5008],
+  yangchang: [31.2718, 120.5052],
+  chagian: [31.2755, 120.5088],
+  baima: [31.2812, 120.5130],
+  tianping: [31.2715, 120.5195],
+  huashan: [31.2868, 120.4562],
+  tianchi: [31.2906, 120.4474],
+  hejiu: [31.2948, 120.4512],
+  qiong: [31.2697, 120.4162],
+  qiongSouth: [31.2584, 120.4206],
+  sunwu: [31.2642, 120.4078],
+  yuping: [31.2786, 120.4268],
+  zhenshan: [31.2848, 120.4338],
+  wufeng: [31.2832, 120.4436],
+  lu: [31.2988, 120.4468],
+  huangguan: [31.3168, 120.4406],
+  yangshan: [31.3512, 120.4472],
+  shushan: [31.3584, 120.4678],
+  dayang: [31.3410, 120.4284],
+  wulong: [31.3186, 120.4002],
+  fenghuang: [31.3114, 120.4088],
+  chouxiang: [31.1582, 120.2548],
+  piaomiao: [31.1806, 120.2754],
+  yuli: [31.1902, 120.3048],
+  dongshan: [31.0824, 120.4122],
+  molifeng: [31.0702, 120.4268],
+  biluo: [31.0864, 120.4312],
+  wangshan: [31.2362, 120.6154],
+  qianyuan: [31.2308, 120.6102],
+  jiulong: [31.2264, 120.6208],
+  shangfang: [31.2502, 120.6264],
+  shihu: [31.2448, 120.6376],
+  yaofeng: [31.2264, 120.4768],
+  dengwei: [31.2472, 120.3462],
+  xuanmu: [31.2408, 120.3364],
+  yushanN: [31.6532, 120.7368],
+  longtan: [31.6624, 120.7318],
+  jianmen: [31.6478, 120.7476],
+  yufeng: [31.3874, 120.9576],
+  qiyang: [31.1472, 120.6372],
 };
 
 const PATHS = {
-  lingbai: { pts: ["lingyan", "lingyansi", "dajiao", "yangchang", "baima"] },
-  "lingbai-devil": { pts: ["lingyan", "lingyansi", "dajiao", "yangchang", "baima"] },
-  tianping: { pts: ["lingyan", "tianping", "baima"], loop: false },
+  lingbai: { pts: ["lingyan", "lingyansi", "lingyanRidge", "dajiao", "yangchang", "chagian", "baima"] },
+  "lingbai-devil": { pts: ["lingyan", "lingyansi", "lingyanRidge", "dajiao", "yangchang", "chagian", "baima"] },
+  tianping: { pts: ["lingyan", "lingyansi", "tianping"] },
   "qionglong-heart": { pts: ["sunwu", "qiong", "qiongSouth", "sunwu"], loop: true },
   "qionglong-rabbit": { pts: ["qiongSouth", "sunwu", "qiong", "qiongSouth"], loop: true },
   yangshu: { pts: ["huangguan", "yangshan", "shushan"] },
@@ -1323,25 +1325,55 @@ const PATHS = {
   "wangshan-big": { pts: ["wangshan", "qianyuan", "jiulong", "shangfang", "wangshan"], loop: true },
   bajian: { pts: ["wulong", "fenghuang", "yuping", "zhenshan", "huangguan", "lu", "huashan"] },
   wushu: { pts: ["wulong", "dayang", "yangshan", "shushan", "huangguan", "wulong"], loop: true },
-  "lingbai-loop": { pts: ["lingyan", "dajiao", "baima", "tianping", "lingyan"], loop: true },
+  "lingbai-loop": { pts: ["lingyan", "lingyansi", "dajiao", "baima", "tianping", "lingyan"], loop: true },
   "qionglong-dino": { pts: ["qiong", "sunwu", "qiongSouth", "qiong"], loop: true },
 };
+
+function outOfChina(lat, lng) {
+  return lng < 72.004 || lng > 137.8347 || lat < 0.8293 || lat > 55.8271;
+}
+function transLat(x, y) {
+  let r = -100 + 2 * x + 3 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+  r += (20 * Math.sin(6 * x * Math.PI) + 20 * Math.sin(2 * x * Math.PI)) * 2 / 3;
+  r += (20 * Math.sin(y * Math.PI) + 40 * Math.sin(y / 3 * Math.PI)) * 2 / 3;
+  return r + (160 * Math.sin(y / 12 * Math.PI) + 320 * Math.sin(y * Math.PI / 30)) * 2 / 3;
+}
+function transLng(x, y) {
+  let r = 300 + x + 2 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+  r += (20 * Math.sin(6 * x * Math.PI) + 20 * Math.sin(2 * x * Math.PI)) * 2 / 3;
+  r += (20 * Math.sin(x * Math.PI) + 40 * Math.sin(x / 3 * Math.PI)) * 2 / 3;
+  return r + (150 * Math.sin(x / 12 * Math.PI) + 300 * Math.sin(x / 30 * Math.PI)) * 2 / 3;
+}
+function toGcj(lat, lng) {
+  if (outOfChina(lat, lng)) return [lat, lng];
+  const a = 6378245;
+  const ee = 0.00669342162296594323;
+  let dLat = transLat(lng - 105, lat - 35);
+  let dLng = transLng(lng - 105, lat - 35);
+  const rad = lat / 180 * Math.PI;
+  let magic = 1 - ee * Math.sin(rad) * Math.sin(rad);
+  const sqrt = Math.sqrt(magic);
+  dLat = (dLat * 180) / ((a * (1 - ee)) / (magic * sqrt) * Math.PI);
+  dLng = (dLng * 180) / (a / sqrt * Math.cos(rad) * Math.PI);
+  return [lat + dLat, lng + dLng];
+}
 
 function routeLine(id) {
   const spec = PATHS[id] || { pts: ["lingyan", "baima"] };
   const raw = spec.pts.map((k) => PT[k]).filter(Boolean);
-  if (!raw.length) return [[31.26, 120.49], [31.27, 120.51]];
+  if (!raw.length) return [toGcj(31.26, 120.49), toGcj(31.28, 120.51)];
   if (raw.length === 1) {
     const [a, b] = raw[0];
-    return [[a + 0.006, b - 0.005], [a + 0.002, b + 0.004], [a - 0.004, b + 0.002], [a - 0.002, b - 0.005], [a + 0.006, b - 0.005]];
+    return [
+      [a + 0.004, b - 0.003],
+      [a + 0.002, b + 0.003],
+      [a - 0.003, b + 0.001],
+      [a - 0.001, b - 0.003],
+      [a + 0.004, b - 0.003],
+    ].map((p) => toGcj(p[0], p[1]));
   }
-  const line = [raw[0]];
-  raw.slice(1).forEach((p, i) => {
-    const prev = line[line.length - 1];
-    line.push([(prev[0] + p[0]) / 2 + (i % 2 ? 0.0022 : -0.0018), (prev[1] + p[1]) / 2 + (i % 2 ? -0.002 : 0.0016)], p);
-  });
-  if (spec.loop) line.push(raw[0]);
-  return line;
+  const pts = spec.loop ? raw.concat([raw[0]]) : raw;
+  return pts.map((p) => toGcj(p[0], p[1]));
 }
 
 let mapInst = null;
@@ -1362,7 +1394,7 @@ function drawRoute(id, names) {
     subdomains: "1234",
     maxZoom: 18,
   }).addTo(mapInst);
-  L.polyline(line, { color: "#1cc87a", weight: 4, opacity: 0.95 }).addTo(mapInst);
+  L.polyline(line, { color: "#1cc87a", weight: 4, opacity: 0.95, smoothFactor: 1.2 }).addTo(mapInst);
   L.marker(line[0], { icon: icon("起", "", 22) }).addTo(mapInst);
   L.marker(line[line.length - 1], { icon: icon("终", "end", 22) }).addTo(mapInst);
   const mids = names.length ? names : [];
