@@ -1244,7 +1244,7 @@ const EXTRA = {
 };
 
 function img(id) {
-  return `img/${id}.svg`;
+  return `img/${id}.svg?v=9`;
 }
 
 function photosOf(route) {
@@ -1260,7 +1260,7 @@ function photosOf(route) {
     out.push({ src: img(key), cap: pair[1], key });
   });
   PIC.forest.forEach((pair) => {
-    if (out.length >= 6 || seen.has(pair[0])) return;
+    if (out.length >= 3 || seen.has(pair[0])) return;
     seen.add(pair[0]);
     out.push({ src: img(pair[0]), cap: pair[1], key: pair[0] });
   });
@@ -1417,7 +1417,7 @@ function renderDetail(id) {
         <ol class="trail">
           ${r.trail.map((p, i) => {
             const pic = r.photos[i % r.photos.length];
-            return `<li><img src="${img(pic.key)}" alt=""><div><strong>${i + 1}. ${p.t}</strong><em>${p.d}</em></div></li>`;
+            return `<li><img src="${img(pic.key)}" alt="" width="64" height="64" loading="lazy"><div><strong>${i + 1}. ${p.t}</strong><em>${p.d}</em></div></li>`;
           }).join("")}
         </ol>
       </section>
