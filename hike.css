@@ -115,22 +115,27 @@ body {
   color: #fff;
   text-shadow: 0 1px 3px rgba(0,0,0,0.45);
 }
+.card-body { padding: 16px; }
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+.card h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 650;
+  min-width: 0;
+}
 .lv-pill {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  padding: 4px 8px;
+  flex: none;
+  padding: 2px 8px;
   border-radius: 6px;
   font-size: 12px;
   font-weight: 650;
   background: var(--accent);
   color: var(--ink);
-}
-.card-body { padding: 16px; }
-.card h2 {
-  margin: 0 0 8px;
-  font-size: 18px;
-  font-weight: 650;
 }
 .card .sum {
   margin: 0 0 12px;

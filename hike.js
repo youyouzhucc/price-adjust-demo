@@ -1452,11 +1452,13 @@ function renderList() {
       (r) => `
       <button class="card" type="button" data-open="${r.id}">
         <div class="card-cover" style="background-image:url('${r.cover}')">
-          <span class="lv-pill">${LEVEL_LABEL[r.level]}</span>
           <i>${r.area} · ${r.km}</i>
         </div>
         <div class="card-body">
-          <h2>${r.name}</h2>
+          <div class="card-title">
+            <h2>${r.name}</h2>
+            <span class="lv-pill">${LEVEL_LABEL[r.level]}</span>
+          </div>
           <p class="sum">${r.summary}</p>
           <div class="tags">${r.scenery.concat(r.styles).slice(0, 4).map((s) => `<span class="tag">${s}</span>`).join("")}</div>
         </div>
