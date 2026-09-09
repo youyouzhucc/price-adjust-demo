@@ -1244,7 +1244,136 @@ const EXTRA = {
 };
 
 function img(id) {
-  return `img/${id}.svg?v=9`;
+  return `img/${id}.svg?v=11`;
+}
+
+const PT = {
+  lingyan: [31.2618, 120.4945],
+  lingyansi: [31.2642, 120.4972],
+  dajiao: [31.2686, 120.5012],
+  yangchang: [31.2724, 120.5054],
+  baima: [31.2776, 120.5096],
+  tianping: [31.2698, 120.5132],
+  huashan: [31.2862, 120.4578],
+  tianchi: [31.2910, 120.4482],
+  hejiu: [31.2954, 120.4520],
+  qiong: [31.2756, 120.4186],
+  qiongSouth: [31.2702, 120.4224],
+  sunwu: [31.2678, 120.4118],
+  yuping: [31.2824, 120.4280],
+  zhenshan: [31.2882, 120.4354],
+  wufeng: [31.2840, 120.4452],
+  lu: [31.3012, 120.4476],
+  huangguan: [31.3184, 120.4418],
+  yangshan: [31.3452, 120.4482],
+  shushan: [31.3564, 120.4624],
+  dayang: [31.3360, 120.4322],
+  wulong: [31.3204, 120.4018],
+  fenghuang: [31.3122, 120.4104],
+  chouxiang: [31.1648, 120.2648],
+  piaomiao: [31.1782, 120.2778],
+  yuli: [31.1856, 120.2924],
+  dongshan: [31.0784, 120.4182],
+  molifeng: [31.0718, 120.4254],
+  biluo: [31.0852, 120.4306],
+  wangshan: [31.2384, 120.6182],
+  qianyuan: [31.2318, 120.6116],
+  jiulong: [31.2276, 120.6224],
+  shangfang: [31.2482, 120.6284],
+  shihu: [31.2416, 120.6352],
+  yaofeng: [31.2278, 120.4782],
+  dengwei: [31.2482, 120.3478],
+  xuanmu: [31.2416, 120.3376],
+  yushanN: [31.6624, 120.7282],
+  longtan: [31.6682, 120.7354],
+  jianmen: [31.6548, 120.7426],
+  yufeng: [31.3882, 120.9584],
+  qiyang: [31.1482, 120.6384],
+};
+
+const PATHS = {
+  lingbai: { pts: ["lingyan", "lingyansi", "dajiao", "yangchang", "baima"] },
+  "lingbai-devil": { pts: ["lingyan", "lingyansi", "dajiao", "yangchang", "baima"] },
+  tianping: { pts: ["lingyan", "tianping", "baima"], loop: false },
+  "qionglong-heart": { pts: ["sunwu", "qiong", "qiongSouth", "sunwu"], loop: true },
+  "qionglong-rabbit": { pts: ["qiongSouth", "sunwu", "qiong", "qiongSouth"], loop: true },
+  yangshu: { pts: ["huangguan", "yangshan", "shushan"] },
+  dayang: { pts: ["dayang", "yangshan", "dayang"], loop: true },
+  "xishan-chouya": { pts: ["chouxiang", "piaomiao", "yuli"] },
+  "dongshan-moli": { pts: ["dongshan", "molifeng", "biluo", "dongshan"], loop: true },
+  wangshan: { pts: ["wangshan", "qianyuan", "jiulong", "wangshan"], loop: true },
+  shangfang: { pts: ["shangfang", "shihu", "shangfang"], loop: true },
+  tianchi: { pts: ["tianchi", "huashan", "tianchi"], loop: true },
+  dengwei: { pts: ["dengwei", "xuanmu", "dengwei"], loop: true },
+  yaofeng: { pts: ["yaofeng", "hejiu", "yaofeng"], loop: true },
+  "yushan-loop": { pts: ["yushanN", "longtan", "jianmen", "yushanN"], loop: true },
+  "yushan-eagle-s": { pts: ["yushanN", "longtan", "jianmen"] },
+  "yushan-eagle": { pts: ["yushanN", "longtan", "jianmen", "yushanN"], loop: true },
+  yufeng: { pts: ["yufeng"], loop: true },
+  qiyang: { pts: ["qiyang"], loop: true },
+  lingqiong: { pts: ["lingyan", "dajiao", "baima", "huashan", "wufeng", "zhenshan", "yuping", "qiong"] },
+  "yushan-big": { pts: ["yushanN", "longtan", "jianmen", "yushanN"], loop: true },
+  "wolf-dog": { pts: ["chouxiang", "piaomiao", "yuli", "chouxiang"], loop: true },
+  "ten-peaks": { pts: ["lingyan", "dajiao", "lu", "hejiu", "huashan", "wufeng", "yangchang", "lingyan"], loop: true },
+  "qionglong-bigdino": { pts: ["qiongSouth", "sunwu", "qiong", "yuping", "qiongSouth"], loop: true },
+  lingwu: { pts: ["lingyan", "dajiao", "baima", "huashan", "lu", "wulong"] },
+  wuling: { pts: ["wulong", "fenghuang", "yuping", "huashan", "baima", "lingyan"] },
+  lingshu: { pts: ["lingyan", "dajiao", "baima", "huashan", "lu", "huangguan", "yangshan", "shushan"] },
+  wuqiong: { pts: ["wulong", "fenghuang", "yuping", "zhenshan", "qiong"] },
+  "wangshan-big": { pts: ["wangshan", "qianyuan", "jiulong", "shangfang", "wangshan"], loop: true },
+  bajian: { pts: ["wulong", "fenghuang", "yuping", "zhenshan", "huangguan", "lu", "huashan"] },
+  wushu: { pts: ["wulong", "dayang", "yangshan", "shushan", "huangguan", "wulong"], loop: true },
+  "lingbai-loop": { pts: ["lingyan", "dajiao", "baima", "tianping", "lingyan"], loop: true },
+  "qionglong-dino": { pts: ["qiong", "sunwu", "qiongSouth", "qiong"], loop: true },
+};
+
+function routeLine(id) {
+  const spec = PATHS[id] || { pts: ["lingyan", "baima"] };
+  const raw = spec.pts.map((k) => PT[k]).filter(Boolean);
+  if (!raw.length) return [[31.26, 120.49], [31.27, 120.51]];
+  if (raw.length === 1) {
+    const [a, b] = raw[0];
+    return [[a + 0.006, b - 0.005], [a + 0.002, b + 0.004], [a - 0.004, b + 0.002], [a - 0.002, b - 0.005], [a + 0.006, b - 0.005]];
+  }
+  const line = [raw[0]];
+  raw.slice(1).forEach((p, i) => {
+    const prev = line[line.length - 1];
+    line.push([(prev[0] + p[0]) / 2 + (i % 2 ? 0.0022 : -0.0018), (prev[1] + p[1]) / 2 + (i % 2 ? -0.002 : 0.0016)], p);
+  });
+  if (spec.loop) line.push(raw[0]);
+  return line;
+}
+
+let mapInst = null;
+
+function icon(html, cls, size) {
+  return L.divIcon({ className: "pin-wrap", html: `<div class="pin ${cls}">${html}</div>`, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
+}
+
+function drawRoute(id, names) {
+  if (!window.L || !$("route-map")) return;
+  if (mapInst) {
+    mapInst.remove();
+    mapInst = null;
+  }
+  const line = routeLine(id);
+  mapInst = L.map("route-map", { zoomControl: true, attributionControl: false });
+  L.tileLayer("https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}", {
+    subdomains: "1234",
+    maxZoom: 18,
+  }).addTo(mapInst);
+  L.polyline(line, { color: "#1cc87a", weight: 4, opacity: 0.95 }).addTo(mapInst);
+  L.marker(line[0], { icon: icon("起", "", 22) }).addTo(mapInst);
+  L.marker(line[line.length - 1], { icon: icon("终", "end", 22) }).addTo(mapInst);
+  const mids = names.length ? names : [];
+  const step = Math.max(1, Math.floor((line.length - 2) / Math.max(mids.length, 1)));
+  line.slice(1, -1).forEach((p, i) => {
+    if (i % step !== 0) return;
+    const label = mids[Math.floor(i / step)] || "";
+    L.marker(p, { icon: icon("", "shot", 12) }).addTo(mapInst).bindTooltip(label, { direction: "top", opacity: 0.9 });
+  });
+  mapInst.fitBounds(line, { padding: [28, 28] });
+  setTimeout(() => mapInst && mapInst.invalidateSize(), 80);
 }
 
 function photosOf(route) {
@@ -1395,6 +1524,18 @@ function renderDetail(id) {
         ${r.warn ? `<p class="warn">${r.warn}</p>` : ""}
       </section>
       <section class="sec">
+        <h3>路线图</h3>
+        <div class="map-box">
+          <div id="route-map"></div>
+          <div class="map-legend">
+            <span><i class="start"></i>起点</span>
+            <span><i class="shot"></i>途经</span>
+            <span><i class="end"></i>终点</span>
+          </div>
+          <p class="map-note">示意轨迹，不是精确 GPS，出门请用两步路等离线轨迹。</p>
+        </div>
+      </section>
+      <section class="sec">
         <h3>简介</h3>
         <p class="story">${r.story}</p>
       </section>
@@ -1467,9 +1608,14 @@ function renderDetail(id) {
   });
   $("back").addEventListener("click", () => { location.hash = ""; });
   window.scrollTo(0, 0);
+  drawRoute(r.id, r.trail.map((p) => p.t));
 }
 
 function showBrowse() {
+  if (mapInst) {
+    mapInst.remove();
+    mapInst = null;
+  }
   $("detail").hidden = true;
   $("foot").hidden = false;
   $("browse").hidden = false;
