@@ -1244,7 +1244,7 @@ const EXTRA = {
 };
 
 function img(id) {
-  return `img/${id}.svg?v=11`;
+  return `img/${id}.jpg`;
 }
 
 const PT = {
