@@ -138,6 +138,8 @@ svg path.dim{opacity:.04}svg path.hl{stroke-width:2.5 !important;opacity:1 !impo
 .iss-detail td{padding:5px 10px;border-bottom:1px solid #f3f4f8;vertical-align:top}
 .iss-detail tr:last-child td{border-bottom:none}
 .iss-detail .diff-old{color:var(--sev1);font-weight:600}
+.iss-tip{display:block;margin-top:4px;font-size:11.5px;color:var(--mut);line-height:1.5}
+.iss-tip b{color:var(--sev1)}
 .iss-empty{text-align:center;color:var(--mut);font-size:13px;padding:30px 0}
 
 /* ─── 手机适配 ─── */
@@ -493,19 +495,21 @@ const ISSUES=[
 {key:'dim1',title:'一、文案前后一致性',items:[
   {id:'T1',sev:'c',title:'同一功能在新版渠道内并存 4 套名字，用户建不起心智模型',
    page:'DewuSaleIntroduceNew',mod:'Header 标题栏 / Footer 提交区 / 得物入口按钮',
-   fld:'title · currentSubmit.button · action_type',fb:'#965 #974',
+   fld:'title · currentSubmit.button · action_type',fb:'#965 #960',
    desc:'走完一条链路会依次看到 4 个词指同一件事：入口按钮「卖了换钱」→ 页面标题「闲置转卖」→ 提交按钮「提交寄卖」（action_type=3）/「提交换钱」（action_type=2）。#965 原话"不能很直观分辨 3 种模式有什么区别"。',
    detail:`<table><tr><th>位置</th><th>用词</th><th>来源</th></tr>
    <tr><td>得物订单入口按钮</td><td>卖了换钱</td><td>服务端 sell_href</td></tr>
    <tr><td>落地页标题</td><td>闲置转卖</td><td>接口返回 title</td></tr>
    <tr><td>提交按钮（寄售）</td><td class="diff-old">提交寄卖</td><td>currentSubmit.button</td></tr>
    <tr><td>提交按钮（回收）</td><td class="diff-old">提交换钱</td><td>currentSubmit.button</td></tr></table>`,
-   fix:'落地页标题、提交按钮、入口按钮统一为「寄售」「挂售」「回收」，「高价」「换钱」只能出现在副标题。'},
+   fix:'表内已定方案（#960）：一键转卖落地页顶部文案改成「闲置换钱」，「我有」新版的按钮一起改。',
+   note:'⚠ 与本报告原建议冲突：原建议是统一为「寄售/挂售/回收」、把「换钱」降为副标题；表内已定方案是反向——统一到「闲置换钱」保留「换钱」。评审需先定口径，再谈其余文案。'},
   {id:'T2',sev:'m',title:'入口按钮与落地页标题词面无关联',
    page:'得物订单 / ownerDetail → DewuSaleIntroduceNew',mod:'入口按钮 / Header 标题栏',
-   fld:'sell_href · title',
+   fld:'sell_href · title',fb:'#960',
    desc:'点「卖了换钱」，落地页标题却是「闲置转卖」；挂售链路进 hallSellGoodsNew 又是另一套标题。用户无法确认自己点对了地方。',
-   fix:'入口按钮文案与落地页标题同名。'},
+   fix:'表内已定方案（#960）：落地页顶部文案改成「闲置换钱」，「我有」新版按钮一起改。',
+   note:'#960 是本项的直接用户实证：「订单页底部按钮文案为「卖了换钱」，点击进入后页面标题为「闲置转卖」，同一功能入口前后文案不统一。」已有处置方案。'},
   {id:'T3',sev:'m',title:'提交按钮在本渠道内 5 种叫法',
    page:'DewuSaleIntroduceNew / hallSellGoodsNew / BidView',mod:'Footer 提交区',
    fld:'currentSubmit.button',
@@ -526,11 +530,12 @@ const ISSUES=[
    <tr><td>2</td><td>—</td><td>寄售</td></tr>
    <tr><td>3</td><td class="diff-old">寄售</td><td class="diff-old">挂售（完全相反）</td></tr></table>`,
    fix:'加显式转换函数并加 default 分支；把 sale_type 直接当 select_sell_type 传会把想寄售的用户导到挂售。'},
-  {id:'T5',sev:'m',title:'寄售价与回收价口径不同且不解释差异',
+  {id:'T5',sev:'m',nq:1,title:'寄售价与回收价口径不同且不解释差异',
    page:'DewuSaleIntroduceNew',mod:'寄售价格区 ConsignPriceTab / 回收价格区',
-   fld:'price · 「预计可卖」文案',fb:'#990',
+   fld:'price · 「预计可卖」文案',fb:'#990✕',
    desc:'寄售显示「预计可卖 ¥882」，回收显示回收估价，两者口径不同、金额差距大，页面不给任何解释。#990："回收和寄售的预计价格差异过大…会比较影响用户体验。"',
-   fix:'统一称「预估收入」，并在两种方式差价大时说明原因（回收即时到账 vs 寄售卖出后到账）。'},
+   fix:'统一称「预估收入」，并在两种方式差价大时说明原因（回收即时到账 vs 寄售卖出后到账）。',
+   note:'判定「不是问题」：本项唯一证据 #990 在体验记录官 0908 批次已标记「无需修复」；同类反馈 #988「三合一中回收和寄售的预期价格偏离过大」同样为「无需修复」。两条同类反馈都被否，说明寄售/回收价差是被接受的设计。'},
   {id:'T6',sev:'l',title:'取件方式措辞不一：上门取件 / 上门回收 / 免费上门取件',
    page:'DewuSaleIntroduceNew（寄售 + 回收）',mod:'快递方式 SellDeliveryMethod',fld:'取件方式文案'},
   {id:'T7',sev:'l',title:'自寄措辞不一：自行发货 / 自行邮寄 / 自寄',
@@ -538,68 +543,91 @@ const ISSUES=[
   {id:'T8',sev:'l',title:'返回挽留弹窗文案风格不一',
    page:'DewuSaleIntroduceNew / hallSellGoodsNew',mod:'返回拦截弹窗',fld:'弹窗标题文案',
    desc:'寄售是「是否需要稍后再寄」，挂售是「确认退出发布」，还有「是否放弃提交」，三种语气与句式。'},
-  {id:'T9',sev:'l',title:'换商品弹窗搜索文案不一致',
-   page:'GoodsListPopup → 搜索页',mod:'商品列表弹窗搜索框',fld:'placeholder（接口下发）',
-   desc:'「货号搜索」「搜索」与接口下发占位文案混用。'},
+  {id:'T9',sev:'l',title:'换商品 / 切换商品按钮文案与样式不一致',
+   page:'GoodsListPopup → 搜索页 · hallSellGoodsNew',mod:'商品列表弹窗搜索框 · 换商品按钮',fld:'placeholder（接口下发） · 按钮文案',fb:'#971',
+   desc:'「货号搜索」「搜索」与接口下发占位文案混用。#971：「闲置转卖」显示「换一个」，「拍图挂售」显示「切换商品」，功能相同但文案和样式不一致。',
+   fix:'表内已定方案（#971）：挂售按钮文案改成「换一个」。'},
   {id:'T10',sev:'l',title:'成功态文案不一：提交成功 / 出售成功 / 发布成功',
    page:'寄售 → ConsignmentNew · 挂售 → hallSellOrderDetail',mod:'建单成功 toast / 成功页',fld:'toast 文案'}
 ]},
 {key:'dim2',title:'二、页面结构前后一致性',items:[
-  {id:'S1',sev:'c',title:'落地页不提供出售方式选择，用户看不到寄售/回收对比',
+  {id:'S1',sev:'m',title:'落地页不提供出售方式选择，用户看不到寄售/回收对比',
    page:'DewuSaleIntroduceNew',mod:'整页结构（单方式单页）',
-   fld:'action_type（2=回收 3=寄售，服务端决定）',fb:'#974 #990',
+   fld:'action_type（2=回收 3=寄售，服务端决定）',fb:'#974✕ #990✕',
    desc:'服务端下发 action_type 直接决定用户只能寄售或只能回收，页面无 Tab、无切换入口、无"看看别的方式"。三合一页面至少能切 Tab 比价，从新版落地页进来完全没有对比机会。#974"有些跳到回收，有些跳到平台寄卖，看不到规律"根因就在这。',
-   fix:'加"查看其他出售方式"入口；只支持一种方式时页面明示「该商品仅支持 X（原因：xxx）」。'},
+   fix:'加"查看其他出售方式"入口；只支持一种方式时页面明示「该商品仅支持 X（原因：xxx）」。',
+   note:'严重度由「严重」下调为「重要」：两条引用证据 #974、#990 在 0908 批次均已标「无需修复」，本项目前仅有代码依据，无用户反馈支撑。'},
   {id:'S2',sev:'c',title:'AB 实验导致同一入口两次进入结构完全不同',
    page:'App.tsx → DewuSaleIntroduceNew / sellTabMergeContainer',mod:'路由 AB 分流',
-   fld:'sale_ab_group · is_hall_sell',
+   fld:'sale_ab_group · is_hall_sell',fb:'#992',
    desc:'同一个得物订单入口、同一个 spu_id，AB 切组后这次进新版落地页（2280 行单页，完整估价+发货+提交），下次进三合一（Tab+简化表单），信息密度和操作步骤都不一样。用户："上次我从订单进来是一个样子，这次进来完全不一样了。"',
-   fix:'实验期内对同一用户锁定分组，或直接收敛为一套（见 M1）。'},
-  {id:'S3',sev:'m',title:'取件时间未默认选中最近可用时段',
+   fix:'实验期内对同一用户锁定分组，或直接收敛为一套（见 M1）。',
+   note:'#992（P2-中，待修复）是本项实证：「同样的鞋，内嵌默认引导回收，APP 引导寄售」。注意同为分流类的 #974/#1008 被判「无需修复」——产品侧口径是「分流本身可接受，但内嵌与 APP 默认不一致不可接受」。'},
+  {id:'S3',sev:'l',title:'取件时间未默认选中最近可用时段',
    page:'DewuSaleIntroduceNew',mod:'快递方式 SellDeliveryMethod → 取件时间弹窗 TakeTimePopup',
    fld:'取件时间（默认空）',fb:'#967',
    desc:'#967："为啥不给我自动选一个最近可取件时间。" 进页面后取件时间为空，必须手动点开弹窗选一次才能提交。',
-   fix:'默认选中最近可用时段，允许用户改。'},
+   fix:'默认选中最近可用时段，允许用户改。',
+   note:'严重度由「重要」下调为「一般」：#967 原始优先级为 P3-建议。'},
   {id:'S4',sev:'m',title:'落地页 2280 行单页与三合一功能高度重叠',
-   page:'DewuSaleIntroduceNewView.tsx',mod:'全页（选商品 / 估价 / 发货 / 提交）',fld:'—',
+   page:'DewuSaleIntroduceNewView.tsx',mod:'全页（选商品 / 估价 / 发货 / 提交）',fld:'—',fb:'#1051 #1014 #1048',
    desc:'与 sellTabMergeContainer 完成的是同一个流程，但 UI 结构完全不同，两边合计 4000+ 行独立维护，任何需求都要改两处、测两遍。',
+   detail:`<table><tr><th>反馈</th><th>用户看到的不一致</th></tr>
+   <tr><td>#1051</td><td>价格模块标题，一键转卖有「？」而三合一没有</td></tr>
+   <tr><td>#1014</td><td>回收页底部有成色说明/接收标准/回收服务协议，平台寄卖是成色说明/接收标准/卖家服务协议，拍图售卖只有接收标准</td></tr>
+   <tr><td>#1048</td><td>寄售页展示挂售的提示，不明所以</td></tr></table>`,
    fix:'见 M1 合并方案。'},
   {id:'S5',sev:'m',title:'寄售提交后 replace 导致返回栈断裂',
    page:'DewuSaleIntroduceNew → ConsignmentNew',mod:'建单成功跳转 createTaskOrder',
-   fld:'replace（而非 push）',
+   fld:'replace（而非 push）',fb:'#1024 #1004',
    desc:'提交成功后 replace 到待发货列表，落地页被移出路由栈。用户在列表按返回直接回首页，想"再卖一件"必须从头走入口。',
+   detail:`<table><tr><th>反馈</th><th>用户可见后果</th></tr>
+   <tr><td>#1024（P2-中）</td><td>在得物一键转卖提交的寄售订单，已完成快递预约，进订单详情后返回，从得物在售管理里<span class="diff-old">找不到刚才的订单</span></td></tr>
+   <tr><td>#1004（P2-低）</td><td>闲置转卖详情页右滑返回，直接跳到闲置换钱商品列表弹窗，跳过了中间页面</td></tr></table>`,
    fix:'保留出售页，或返回时回到入口页而非首页。'},
   {id:'S6',sev:'m',title:'Header「订单」快捷入口直接离开出售流程',
    page:'DewuSaleIntroduceNew',mod:'Header 快捷入口（估价 / 订单）',fld:'「订单」跳转 target',
    desc:'Header 上的「订单」跳到「我的」，整条出售链路被中断且无法返回到填写中的表单，已选规格、已填地址全部丢失。同排的「估价」是可返回的，两个入口行为不一致。',
-   fix:'改为半屏展示，或返回时恢复表单状态。'}
+   fix:'改为半屏展示，或返回时恢复表单状态。'},
+  {id:'S7',sev:'c',title:'提交校验提示了「请选择取件时间」，但该模块在当前视口内不可见且不自动定位',
+   page:'DewuSaleIntroduceNew（action_type=3 寄售）',mod:'Footer 提交区 → 快递方式 SellDeliveryMethod',
+   fld:'取件时间（必填，默认空） · 提交校验 toast',fb:'#953',
+   desc:'#953（P1-高，待修复）：「点击提交寄卖，提示请选择取件时间，当前页面没有显示这个模块、也不会自动滑动定位到填写信息的地方。」落地页是 2280 行长单页，取件时间在页面中部，用户点底部提交按钮时该模块已滚出视口——toast 说了要填什么，但没告诉用户在哪、也不带过去。',
+   detail:`<table><tr><th>环节</th><th>当前行为</th><th>用户处境</th></tr>
+   <tr><td>点提交</td><td>校验失败弹 toast「请选择取件时间」</td><td>看得见提示</td></tr>
+   <tr><td>视口</td><td class="diff-old">取件时间模块已滚出屏幕</td><td>看不见要填的字段</td></tr>
+   <tr><td>定位</td><td class="diff-old">无 scrollTo / 无高亮</td><td>只能自己往上翻找</td></tr></table>`,
+   note:'与 S3（取件时间未默认选中）同源：S3 是「为什么要我填」，本项是「填的地方找不到」。若 S3 做了默认选中，本项触发概率大幅下降。',
+   fix:'校验失败时 scrollTo 到首个未填模块并高亮，或把必填项收进提交前的半屏确认层。'}
 ]},
 {key:'dim3',title:'三、哪些模块可以合并',items:[
   {id:'M1',sev:'c',title:'DewuSaleIntroduceNew 与 sellTabMergeContainer 应合并为一个页面',
    page:'DewuSaleIntroduceNew / sellTabMergeContainer',mod:'选方式 / 估价 / 发货 / 提交 / 换商品',
-   fld:'action_type ↔ select_sell_type',
-   desc:'两个页面做的是同一件事：让用户选出售方式并提交。各自维护 2000+ 行，AB 切换还导致体验断裂（S2）。',
+   fld:'action_type ↔ select_sell_type',fb:'#1013',
+   desc:'两个页面做的是同一件事：让用户选出售方式并提交。各自维护 2000+ 行，AB 切换还导致体验断裂（S2）。#1013 是用户实证：「从一键转卖的落地页里选择 AI 拍图估价，估完价出售跳到了三合一的页面，为何不能更换商品回到一键转卖页面进行出售，前后两个出售页面差别太大」。',
    detail:`<table><tr><th>能力</th><th>DewuSaleIntroduceNew</th><th>sellTabMergeContainer</th></tr>
    <tr><td>选方式</td><td class="diff-old">服务端决定，用户无感</td><td>Tab 切换</td></tr>
    <tr><td>估价展示</td><td>内联 ConsignPriceTab</td><td>各 Tab 内嵌</td></tr>
    <tr><td>发货方式</td><td>内联 SellDeliveryMethod</td><td>部分 Tab 内嵌</td></tr>
    <tr><td>换商品</td><td>GoodsListPopup</td><td>SpuPropertyPopup</td></tr></table>`,
    fix:'以三合一为基础（Tab 更透明），补齐新版的步骤说明、到手价计算器、发货内联，取消 AB 实验。'},
-  {id:'M5',sev:'l',title:'DewuSaleForMoneyTransfer 中转页应删除，逻辑合入路由分发',
-   page:'DewuSaleForMoneyTransfer（「卖了换钱」中转）',mod:'中转分发',fld:'接口返回 jump_type',
-   desc:'纯中转页无 UI 价值，且接口返回空数据时白屏死路（见 J4）。分流逻辑完全可以放在 App.tsx 路由层。',
-   fix:'删页，分流上移到路由层，顺带消掉 J4。'},
+  {id:'M5',sev:'m',title:'DewuSaleForMoneyTransfer 中转页应删除，逻辑合入路由分发',
+   page:'DewuSaleForMoneyTransfer（「卖了换钱」中转）',mod:'中转分发',fld:'接口返回 jump_type',fb:'#1001',
+   desc:'纯中转页无 UI 价值，用户能感知到的只是多一次跳转。#1001 是直接实证：「这一步多一帧中间页跳转很奇怪，要么一步到位直接跳拍摄页呢？」分流逻辑完全可以放在 App.tsx 路由层。',
+   note:'严重度由「一般」上调为「重要」：本项已有用户实证 #1001（P3-建议），且删页可一并消掉 J4 的异常分支。',
+   fix:'删页，分流上移到路由层。'},
   {id:'M6',sev:'l',title:'hallSellGoodsNew/DetailView.js 是死代码',
    page:'hallSellGoodsNew（挂售填写页）',mod:'DetailView.js',fld:'—',
    desc:'实际生效的是 sellTabMergeHallSellGoodsNew/SellDetailView.js，旧文件仍在仓库里，改错文件会白改一轮。',
    fix:'删除死代码。'}
 ]},
 {key:'dim4',title:'四、哪些模块位置不合理',items:[
-  {id:'P1',sev:'c',title:'「在售同款管理」出现在出售页，打断"我要卖东西"的心流',
+  {id:'P1',sev:'l',title:'「在售同款管理」出现在出售页，打断"我要卖东西"的心流',
    page:'DewuSaleIntroduceNew',mod:'订单提示卡片 OrderTipCards / 在售同款管理',
    fld:'待发货订单卡片 + 「去发货」按钮',fb:'#966',
    desc:'#966："第一眼看不懂，有点懵。" 该模块含完整的待发货订单卡片和操作按钮，属于「订单管理」语境，硬插在出售流程中间。',
-   fix:'移到订单/我的页面。要提示"你有待发货的单"就用一个轻量提示条（OrderTipCards 已有此能力），不要放完整卡片+按钮。'},
+   fix:'表内已定方案（#966）：模块文案改为「出售订单管理」，位置不动。',
+   note:'严重度已下调：原始反馈 #966 优先级仅 P3-建议，本报告原先标「严重」偏高。原建议「移到订单/我的页」与已定方案不同——已定方案只改文案不改位置。'},
   {id:'P2',sev:'m',title:'运费支付弹窗挂在出售页而非订单详情页',
    page:'DewuSaleIntroduceNew（View.tsx:2134-2202）',mod:'支付运费弹窗 JwPayModal',fld:'弹窗挂载宿主',fb:'#981',
    desc:'#981："在闲置转卖页和订单详情页之间来回跳转，最终支付运费弹窗叠加在闲置转卖页上而非订单详情页。" 根因是 JwPayModal 挂在落地页组件上。',
@@ -608,22 +636,26 @@ const ISSUES=[
    page:'DewuSaleIntroduceNew（action_type=2 回收）',mod:'声明区 / 收货须知（type=4/8 协议弹窗）',
    fld:'协议勾选态（无） · type=1 品相确认',fb:'#985',
    desc:'#985："低于回收标准将被退回的前置说明确认，和回收服务协议为什么不是必选的勾选项，需要用户手动点开。" 现在是提交时才 toast 拦一下。',
-   fix:'提交按钮旁做强制勾选，未勾选置灰按钮。'},
-  {id:'P5',sev:'m',title:'取件时间选择粒度过粗',
-   page:'DewuSaleIntroduceNew',mod:'取件时间弹窗 TakeTimePopup',fld:'时间段（接口返回）',fb:'#983',
+   fix:'表内已定方案（#985）：三合一——所有接收须知上移到页面上部；回收半层——去掉底层按钮。',
+   note:'原建议是「提交前强制勾选 + 未勾选置灰」，已定方案是「须知上移」，两者做法不同（前者拦截、后者前置曝光）。原始反馈 #985 优先级 P3-建议。'},
+  {id:'P5',sev:'m',nq:1,title:'取件时间选择粒度过粗',
+   page:'DewuSaleIntroduceNew',mod:'取件时间弹窗 TakeTimePopup',fld:'时间段（接口返回）',fb:'#983✕',
    desc:'#983："德邦快递取件时间仅 08:00-20:00 一个选项，时间跨度 12 小时，颗粒度过粗。" 弹窗只是照渲染接口返回的时间段，没做拆分。',
-   fix:'接口按 2-3 小时拆分时段下发。'}
+   fix:'接口按 2-3 小时拆分时段下发。',
+   note:'判定「不是问题」：唯一证据 #983 在 0908 批次已标记「无需修复」（原始优先级仅 P3-建议）。'}
 ]},
 {key:'dim5',title:'五、哪些跳转莫名其妙',items:[
-  {id:'J2',sev:'c',title:'挂售成功后 Android 返回键完全失效，用户卡死',
+  {id:'J2',sev:'m',title:'挂售成功后 Android 返回栈异常，需多次返回或无法退出',
    page:'hallSellOrderDetail（挂售订单详情）',mod:'backAction 返回拦截（DetailView.js:109-114）',
-   fld:'isResetRoute=true',
+   fld:'isResetRoute=true',fb:'#1029 #1004',
    desc:'挂售提交成功 → hallSellOrderDetail(isResetRoute=true) → backAction 的该分支 return true 阻止了返回事件，但不调用任何导航方法。用户只能杀进程。',
-   fix:'isResetRoute=true 时 goBack 或 reset 到出售首页。改几行代码。'},
-  {id:'J4',sev:'c',title:'中转页白屏死路：点「卖了换钱」后永远白屏',
+   fix:'isResetRoute=true 时 goBack 或 reset 到出售首页。改几行代码。',
+   note:'措辞已收敛、严重度由「严重」降为「重要」：代码分支确实 return true 不导航，但 0908 批次的用户实证只到 #1029「安卓点买卖闲置以后返回，要返回两次才能回入口」（P2-低）与 #1004「右滑返回直接跳到商品列表，跳过中间页」（P2-低），未见「完全失效/杀进程」级反馈。'},
+  {id:'J4',sev:'c',nq:1,title:'中转页白屏死路：点「卖了换钱」后永远白屏',
    page:'DewuSaleForMoneyTransfer',mod:'render() 空数据兜底',fld:'接口空返回',
    desc:'接口返回空数据时 render() 返回 null——无 toast（代码被注释）、无退出按钮、无超时处理。这是新版渠道的必经入口，一旦命中用户只能杀进程。',
-   fix:'加超时 → toast + goBack。顺带见 M5（删掉这一页更彻底）。'},
+   fix:'加超时 → toast + goBack。顺带见 M5（删掉这一页更彻底）。',
+   note:'判定「不是问题」：属异常处理范畴，不作为链路体验问题收录（产品侧明确）。且 0908 批次 95 条用户反馈中检索「白屏/崩/闪退/卡死/无响应」为 0 条，无用户实证。代码事实仍成立，删页方案见 M5。'},
   {id:'J6',sev:'m',title:'「换一个」push 到自身页面，路由栈无限增长',
    page:'DewuSaleIntroduceNew / GoodsListPopup',mod:'商品信息区「换一个」→ 商品列表弹窗',
    fld:"navigation.push('DewuSaleIntroduceNew', newParams)",
@@ -639,16 +671,57 @@ const ISSUES=[
    fld:'sell_href（通用流程） · 规格需重选',fb:'#967',
    desc:'「我有」页已展示行情价、日均成本等个性化信息，点出售后跳的是通用 sell_href 流程，行情上下文断裂、规格要重新选一遍。#967"为啥不自动选取件时间"也是这个语境——从「我有」进来本该更聪明。',
    fix:'透传已知规格与行情上下文，能预填的都预填。'},
-  {id:'J8',sev:'m',title:'服务端分流不向用户解释，同类商品行为不一致',
+  {id:'J8',sev:'m',nq:1,title:'服务端分流不向用户解释，同类商品行为不一致',
    page:'App.tsx 路由 → 落地页 / 挂售页',mod:'路由分发',
-   fld:'btn.type · sale_type · select_sell_type · is_hall_sell',fb:'#974',
+   fld:'btn.type · sale_type · select_sell_type · is_hall_sell',fb:'#974✕',
    desc:'#974 原文："有些跳到回收，有些商品跳到平台寄卖，看不到规律用户我也很难分辨这些区别。" 分流规则全在服务端，客户端不解释为什么这个商品只能回收/只能寄售。',
-   fix:'落地页明确告知「该商品仅支持回收（原因：xxx）」，而不是静默跳转让用户猜。'}
+   fix:'落地页明确告知「该商品仅支持回收（原因：xxx）」，而不是静默跳转让用户猜。',
+   note:'判定「不是问题」：证据 #974 已标「无需修复」，同类 #1008「同类目有的有精准估价入口有的没有」同样「无需修复」，且 #1019 处置说明「精准估价按钮目前只有鞋有，要下线了」。分流本身被接受；其中确实待修复的部分是「内嵌与 APP 默认引导不一致」（#992），已归入 S2。'},
+  {id:'J10',sev:'c',title:'部分商品点「卖了换钱」跳到得物旧版「省心卖闲置」页，完全离开新版渠道',
+   page:'得物订单详情 → 省心卖闲置（旧页）',mod:'入口路由分流 sell_href / btn.type',
+   fld:'sell_href（服务端下发） · 随心省类商品',fb:'#1036',
+   desc:'#1036（P1-高，待修复）：「随心省 95分不能出售，而且还跳转了一张老页面。」用户购买的得物随心省商品（¥38.9）交易成功后点「卖了换钱」，跳到的是「省心卖闲置」旧回收/寄售页，而非 95分新流程。这不是页面内的跳转异常，是分流直接把用户送出了新版渠道。',
+   detail:`<table><tr><th>预期</th><th>实际</th></tr>
+   <tr><td>「卖了换钱」→ 中转页 → 新版落地页（寄售/回收）</td><td class="diff-old">「卖了换钱」→ 得物「省心卖闲置」旧页</td></tr>
+   <tr><td>可出售</td><td class="diff-old">95分不能出售</td></tr></table>`,
+   note:'本项是新版渠道链路上最严重的一类跳转问题——不是跳错页面，是掉出整条链路。与 T4（路由参数含义相反）、S2（AB 分流）同属路由层，但后果更彻底。',
+   fix:'补齐 sell_href 分流对随心省等商品类型的覆盖；无法支持的品类应在入口就不展示「卖了换钱」，而不是跳到旧页让用户走到死。'}
+]},
+{key:'dim6',title:'六、页面内数据与文案自相矛盾',items:[
+  {id:'X1',sev:'m',title:'同一商品涨幅两处数字不一致：页面写 ¥26，弹窗写 ¥16',
+   page:'DewuSaleIntroduceNew（寄售）',mod:'寄售价格区 趋势描述 → 价格行情弹窗',
+   fld:'涨幅文案 · 行情弹窗数值',fb:'#982',
+   desc:'#982（P2-中，待修复）：出售页价格趋势写「本周比上周上涨 ¥26↑」，点开价格行情弹窗显示「本周比上周上涨 ¥16」——同一商品、同一成色 A 级 ¥978，两处涨幅数字不一致。',
+   note:'这类问题与「用词不统一」不同量级：用词不统一是认知成本，同一页面两处数字互相矛盾直接损害定价可信度。',
+   fix:'涨幅统一由一处数据源计算，页面与弹窗共用同一字段。'},
+  {id:'X2',sev:'m',title:'趋势图显示下跌，同屏文案说「和上周持平」',
+   page:'DewuSaleIntroduceNew（寄售）',mod:'寄售价格区 趋势图 + 趋势描述',
+   fld:'趋势图数据 · 描述文案打点规则',fb:'#973',
+   desc:'#973（P2-中，待修复）：「看趋势图是在下跌，但是文案告诉我是持平。」全新品相 SS 级预计可卖 ¥690，下方文案「本周价格和上周持平，同款最快 1 小时售出」，与同屏趋势图走势相反。',
+   fix:'表内已定方案（#973）：修改描述文案和打点规则。'},
+  {id:'X3',sev:'l',title:'同一成色等级两个名字：选择栏「全新品相」，弹窗「未使用」',
+   page:'DewuSaleIntroduceNew',mod:'成色选择栏 → 成色评级标准弹窗',
+   fld:'SS 级描述文案',fb:'#987',
+   desc:'#987：SS 级在成色选择栏显示「全新品相」，在成色评级标准弹窗中显示「未使用」。用户点进弹窗是为了确认自己该选哪个，结果两处叫法不同，反而更难对上。',
+   note:'相关反馈 #1006（美妆 SS/S 无说明）、#986（「成色说明」入口点开后弹窗标题是「成色评级标准」）同属成色区文案，一并处理更省事。',
+   fix:'SS/S 等级在选择栏与弹窗内使用同一套描述词。'},
+  {id:'X4',sev:'l',title:'运费补贴金额只在支付弹窗出现，页面上看不到',
+   page:'DewuSaleIntroduceNew（寄售）',mod:'快递方式 运费展示 → 支付运费弹窗',
+   fld:'运费文案 · 补贴金额',fb:'#977',
+   desc:'#977：寄售页面运费显示「京东快递 运费 ¥8.00 ¥15.00」只有划线价，未标补贴；点击支付弹窗后才显示「¥8.00，平台已补贴 ¥7.00」。同一笔运费在两个界面信息量不同。',
+   note:'相关反馈 #975「运费补贴只写了有补贴、未标金额」处置为「拿掉运费补贴，优化多重文案」——若该方案落地，本项随之消解，评审时需确认是否同一处改动。',
+   fix:'页面运费行直接标出补贴后金额与补贴额，与支付弹窗一致。'},
+  {id:'X5',sev:'m',title:'落地页洗护说明里的权益标签实际已下线',
+   page:'DewuSaleIntroduceNew',mod:'服务权益 → 洗护服务说明页',
+   fld:'洗护说明文案',fb:'#1020',
+   desc:'#1020（P2-中，待修复）：洗护服务说明页写「曝光更高——洗护后商品获得超级干净标签」，该标签实际已不存在，页面未同步更新。用户按已下线的权益做决策。',
+   note:'同类还有 #956「介绍页面太老了，有些说明已经跟实际情况脱节」——说明落地页存在一批未随业务下线而更新的静态文案，建议单独排一次全量核对，而不是逐条修。',
+   fix:'下线权益时同步清理落地页说明；静态文案做一次全量核对。'}
 ]}
 ];
 
 const SEV_LABEL={c:'严重',m:'重要',l:'一般'};
-const DIM_SHORT={dim1:'文案一致性',dim2:'页面结构',dim3:'可合并模块',dim4:'模块位置',dim5:'跳转异常'};
+const DIM_SHORT={dim1:'文案一致性',dim2:'页面结构',dim3:'可合并模块',dim4:'模块位置',dim5:'跳转异常',dim6:'页面内矛盾'};
 let typeFilter='all',sevFilter='all',markFilter='all';
 
 /* 标注结果本地持久化，刷新不丢 */
@@ -656,10 +729,11 @@ const MK_KEY='resell_flow_marks_v1';
 let MARKS={};
 try{MARKS=JSON.parse(localStorage.getItem(MK_KEY)||'{}')||{}}catch(e){MARKS={}}
 function saveMarks(){try{localStorage.setItem(MK_KEY,JSON.stringify(MARKS))}catch(e){}}
-const mkOf=id=>MARKS[id]||'u';
+const NQ={};ISSUES.forEach(d=>d.items.forEach(i=>{if(i.nq)NQ[i.id]='n'}));
+const mkOf=id=>MARKS[id]||NQ[id]||'u';
 function setMark(id,v,ev){
   if(ev&&ev.stopPropagation)ev.stopPropagation();
-  if(MARKS[id]===v)delete MARKS[id];else MARKS[id]=v;
+  MARKS[id]=(mkOf(id)===v)?'u':v;   // 取消时写入显式 'u'，才能覆盖 nq 预判
   saveMarks();applyFilter();
 }
 function clearMarks(){
@@ -669,8 +743,9 @@ function clearMarks(){
 function copyMarks(){
   const all=ISSUES.flatMap(d=>d.items.map(i=>({...i,key:d.key})));
   const grp=v=>all.filter(i=>mkOf(i.id)===v);
-  const fmt=a=>a.length?a.map(i=>`${i.id} [${DIM_SHORT[i.key]}/${SEV_LABEL[i.sev]}] ${i.title}`).join('\n'):'（无）';
-  const txt=`一键转卖·渠道新版 问题标注结果\n\n【确认是问题 ${grp('y').length}】\n${fmt(grp('y'))}\n\n【判定不是问题 ${grp('n').length}】\n${fmt(grp('n'))}\n\n【未标记 ${grp('u').length}】\n${fmt(grp('u'))}`;
+  const fmt=a=>a.length?a.map(i=>`${i.id}${mine(i)} [${DIM_SHORT[i.key]}/${SEV_LABEL[i.sev]}] ${i.title}`).join('\n'):'（无）';
+  const mine=i=>MARKS[i.id]?'*':'';
+  const txt=`一键转卖·渠道新版 问题标注结果（* = 人工改过，其余为报告预判）\n\n【确认是问题 ${grp('y').length}】\n${fmt(grp('y'))}\n\n【判定不是问题 ${grp('n').length}】\n${fmt(grp('n'))}\n\n【未标记 ${grp('u').length}】\n${fmt(grp('u'))}`;
   const done=()=>{const b=document.getElementById('btn-copy');if(!b)return;b.textContent='已复制';setTimeout(()=>{b.textContent='复制标注'},1500)};
   // file:// 打开属非安全上下文，navigator.clipboard 不存在，降级到 textarea + execCommand
   const fallback=()=>{
@@ -697,7 +772,8 @@ function renderIssues(){
 
   let h=`<div class="iss-top">
     <div class="iss-hd">
-      <div class="iss-scope"><b>一键转卖 · 渠道新版</b><br>得物订单/「我有」→ 中转页 → 落地页（寄售/回收）· 挂售页 → 建单 → 结果页</div>
+      <div class="iss-scope"><b>一键转卖 · 渠道新版</b><br>得物订单/「我有」→ 中转页 → 落地页（寄售/回收）· 挂售页 → 建单 → 结果页
+        <br><span class="iss-tip">已对齐「体验记录官」0908 批次（95 条 / #951–1057）· <b>✕</b> 表示该反馈已判无需修复 · 默认标「不是问题」的项可点按钮改回</span></div>
       <div class="iss-nums">
         <span class="iss-num"><b>${all.length}</b> 项</span>
         <span class="iss-num s-c">严重 <b>${cnt('c')}</b></span>
@@ -706,7 +782,7 @@ function renderIssues(){
         <span class="iss-num">关联反馈 <b>${fb.size}</b></span>
         <span class="iss-num prog">已标注 <b id="mk-prog">0</b>/${all.length}</span>
         <button class="iss-act" id="btn-copy" onclick="copyMarks()">复制标注</button>
-        <button class="iss-act" onclick="clearMarks()">清空标注</button>
+        <button class="iss-act" onclick="clearMarks()">恢复默认判定</button>
       </div>
     </div>
     <div class="iss-bars">
