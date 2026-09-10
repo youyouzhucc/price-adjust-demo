@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一键转卖 · 新版落地页全链路</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f5f6fa;--card:#fff;--bdr:#dde1ea;--tx:#1f2329;--sub:#6b7280;--accent:#6366f1}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);overflow:hidden;height:100vh;color:var(--tx)}
+
+#bar{position:fixed;top:0;left:0;right:0;height:44px;background:#fff;border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 14px;gap:10px;z-index:200}
+#bar h1{font-size:13px;font-weight:700;white-space:nowrap}
+.tabs{display:flex;gap:3px}
+.tabs button{padding:4px 14px;border:1.5px solid var(--bdr);border-radius:6px;background:#fff;font-size:11px;font-weight:600;cursor:pointer;color:var(--sub);transition:.15s}
+.tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.spacer{flex:1}
+.hint{font-size:10px;color:var(--sub)}
+.zb{display:flex;gap:3px}
+.zb button{width:26px;height:26px;border:1px solid var(--bdr);border-radius:4px;background:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+#canvas{position:absolute;top:44px;left:0;right:0;bottom:0;overflow:hidden;cursor:grab}
+#canvas.dragging{cursor:grabbing}
+#world{position:absolute;transform-origin:0 0}
+.view{display:none;position:relative}.view.on{display:block}
+
+.nd{position:absolute;border-radius:9px;background:var(--card);border:1.5px solid var(--bdr);z-index:2;font-size:11px;min-width:90px;transition:opacity .15s,border-color .15s,box-shadow .15s}
+.nd.dim{opacity:.1;pointer-events:none}
+.nd.glow{box-shadow:0 0 0 3px rgba(99,102,241,.35)}
+.nd .h{padding:5px 10px 4px;display:flex;align-items:center;gap:5px;border-bottom:1px solid #f0f0f0}
+.nd .h .ic{width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700;flex-shrink:0}
+.nd .h .t{font-size:11px;font-weight:700;white-space:nowrap}
+.nd .h .s{font-size:8px;color:var(--sub);margin-left:auto;white-space:nowrap;max-width:170px;overflow:hidden;text-overflow:ellipsis}
+.nd .bd{padding:3px 6px 4px}
+.nd .r{display:flex;align-items:center;gap:4px;padding:2.5px 5px;border-radius:4px;cursor:pointer;white-space:nowrap;line-height:1.3;transition:background .1s}
+.nd .r:hover{background:rgba(0,0,0,.06)}
+.nd .r.hl{background:rgba(99,102,241,.15);font-weight:600}
+.nd .r .d{width:7px;height:7px;border-radius:50%;flex-shrink:0;transition:background .15s,border-color .15s}
+.nd .sec{padding:1px 8px;font-size:8px;font-weight:700;color:var(--accent);background:rgba(99,102,241,.04);border-top:1px solid rgba(99,102,241,.08)}
+
+.nd.c-entry{border-color:#475569;border-width:2px;background:#f8fafc}.nd.c-entry .h .ic{background:#475569}
+.nd.c-route{border-color:#94a3b8;border-style:dashed;background:#f8fafc}.nd.c-route .h .ic{background:#64748b}
+.nd.c-core{border-color:var(--accent);border-width:2px;background:#eef2ff}.nd.c-core .h{background:rgba(99,102,241,.07)}.nd.c-core .h .ic{background:var(--accent)}
+.nd.c-page{border-color:#0891b2;background:#ecfeff}.nd.c-page .h .ic{background:#0891b2}
+.nd.c-result{border-color:#059669;border-width:2px;background:#ecfdf5}.nd.c-result .h .ic{background:#059669}
+.nd.c-popup{border-color:#8b5cf6;border-style:dashed;background:#f5f3ff}.nd.c-popup .h .ic{background:#8b5cf6}
+.nd.c-exit{border-color:#64748b;background:#f1f5f9}.nd.c-exit .h .ic{background:#64748b}
+.bug-badge{position:absolute;top:-6px;right:-6px;width:15px;height:15px;border-radius:50%;background:#dc2626;color:#fff;font-size:8px;display:flex;align-items:center;justify-content:center;font-weight:700;z-index:3}
+
+
+svg{position:absolute;top:0;left:0;pointer-events:none;z-index:1}
+svg path{transition:opacity .15s,stroke-width .15s}
+svg path.dim{opacity:.04}svg path.hl{stroke-width:2.5 !important;opacity:1 !important}
+
+.tip{position:fixed;background:#1f2329;color:#fff;padding:7px 11px;border-radius:7px;font-size:10.5px;pointer-events:none;z-index:300;max-width:360px;line-height:1.5;display:none;white-space:pre-line}
+#reset-bar{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:#1f2329;color:#fff;padding:6px 20px;border-radius:7px;font-size:11px;z-index:200;display:none;cursor:pointer}
+
+/* ─── issues tab ─── */
+/* 配色只用 4 种：主色 indigo / 严重红 / 重要橙 / 中性灰 */
+#issues-panel{display:none;position:absolute;top:44px;left:0;right:0;bottom:0;overflow-y:auto;background:var(--bg);padding:14px 22px 48px;
+  --pri:#4f46e5;--sev1:#dc2626;--sev2:#d97706;--mut:#8b93a1;--ink:#2b3038;--soft:#f1f3f7}
+#issues-panel.on{display:block}
+
+/* 顶部：范围 + 统计 + 三组筛选 */
+.iss-top{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--bdr)}
+.iss-hd{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:11px}
+.iss-scope{font-size:13px;color:var(--sub);line-height:1.6}
+.iss-scope b{color:var(--ink);font-size:14px}
+.iss-nums{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;align-items:center}
+.iss-num{font-size:12px;padding:3px 11px;border-radius:12px;background:#fff;border:1px solid var(--bdr);white-space:nowrap;color:var(--sub)}
+.iss-num b{font-weight:700;color:var(--ink)}
+.iss-num.s-c b{color:var(--sev1)}.iss-num.s-m b{color:var(--sev2)}
+.iss-num.prog{border-color:#cfd2f5;background:#f6f7fd}.iss-num.prog b{color:var(--pri)}
+.iss-act{font-size:12px;padding:3px 11px;border-radius:12px;background:#fff;border:1px solid var(--bdr);color:var(--sub);cursor:pointer;font-weight:600;white-space:nowrap}
+.iss-act:hover{border-color:var(--pri);color:var(--pri)}
+
+.iss-bars{display:flex;flex-direction:column;gap:7px}
+.iss-bar{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.iss-bar .bl{font-size:11.5px;color:var(--mut);font-weight:600;min-width:56px;flex-shrink:0}
+.iss-bar button{font-size:12px;padding:4px 13px;border-radius:6px;border:1px solid var(--bdr);background:#fff;color:var(--sub);cursor:pointer;font-weight:600}
+.iss-bar button:hover{border-color:var(--pri);color:var(--pri)}
+.iss-bar button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.iss-bar button .bn{opacity:.6;margin-left:4px;font-weight:400}
+
+/* 维度分组 */
+.dim-block{margin-bottom:16px}
+.dim-block.hide{display:none}
+.dim-head{display:flex;align-items:center;gap:8px;padding:5px 0 8px;cursor:pointer;user-select:none}
+.dim-head h3{font-size:14.5px;font-weight:700;color:var(--ink)}
+.dim-head .cnt{color:var(--mut);font-size:12px;font-weight:600}
+.dim-head .arrow{font-size:9px;color:var(--mut);width:10px;transition:transform .15s}
+.dim-head.collapsed .arrow{transform:rotate(-90deg)}
+.dim-body.collapsed{display:none}
+
+/* 问题卡 */
+.iss-card{background:#fff;border-radius:7px;margin-bottom:7px;border:1px solid var(--bdr);overflow:hidden}
+.iss-card.hide{display:none}
+.iss-card.sev-c{border-left:3px solid var(--sev1)}
+.iss-card.sev-m{border-left:3px solid var(--sev2)}
+.iss-card.sev-l{border-left:3px solid #c8ced8}
+.iss-card-head{padding:10px 13px 9px;cursor:pointer}
+.iss-card-head:hover{background:#fafbfd}
+.iss-line{display:flex;align-items:center;gap:9px}
+.sev-badge{padding:2px 7px;border-radius:3px;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;flex-shrink:0}
+.sev-badge.s-c{background:var(--sev1)}.sev-badge.s-m{background:var(--sev2)}.sev-badge.s-l{background:var(--mut)}
+.iss-title{font-weight:600;font-size:14px;line-height:1.5;flex:1;color:var(--ink)}
+.iss-title .iid{color:var(--mut);font-weight:700;margin-right:5px}
+.iss-expand{color:#c2c8d2;font-size:9px;flex-shrink:0;transition:transform .15s;transform:rotate(90deg)}
+.iss-expand.closed{transform:rotate(0)}
+
+/* 标注：是问题 / 不是问题 —— 可切换，点第二次取消 */
+.iss-mark{display:flex;gap:4px;flex-shrink:0;margin-left:auto}
+.iss-mark button{font-size:11.5px;padding:3px 9px;border-radius:5px;border:1px solid var(--bdr);background:#fff;color:var(--mut);cursor:pointer;font-weight:600;white-space:nowrap}
+.iss-mark button:hover{border-color:var(--pri);color:var(--pri)}
+.iss-mark button.on-y{background:var(--pri);border-color:var(--pri);color:#fff}
+.iss-mark button.on-n{background:var(--mut);border-color:var(--mut);color:#fff}
+.iss-card.mk-n{opacity:.52}
+.iss-card.mk-n .iss-title{text-decoration:line-through;text-decoration-color:var(--mut)}
+.iss-card.mk-y{border-left-width:5px}
+
+/* 页面 / 模块 / 字段 —— 统一中性灰，靠标签文字区分，不靠颜色 */
+.iss-meta{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0 0 32px}
+.mt{display:inline-flex;align-items:center;font-size:11.5px;border-radius:4px;overflow:hidden;border:1px solid var(--bdr);max-width:100%}
+.mt .k{padding:2px 6px;font-weight:700;background:var(--soft);color:var(--mut);flex-shrink:0}
+.mt .v{padding:2px 8px;background:#fff;color:#4a5260;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mt-fld .v{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px}
+.mt-fb{border-color:#cfd2f5}.mt-fb .k{background:#eeeffc;color:var(--pri)}.mt-fb .v{color:var(--pri);font-weight:600}
+
+/* 详情：默认展开 */
+.iss-detail{padding:3px 13px 12px 45px;font-size:13.5px;line-height:1.75;color:#3d4450}
+.iss-detail.closed{display:none}
+.iss-detail .desc{margin-bottom:7px}
+.iss-detail .fix{background:#f6f7fd;border-left:2.5px solid var(--pri);padding:7px 11px;margin-top:8px;border-radius:0 5px 5px 0;font-size:13px}
+.iss-detail .fix b{color:var(--pri)}
+.iss-detail .note{font-size:12px;color:var(--mut);margin-top:6px;font-style:italic}
+.iss-detail table{width:100%;border-collapse:collapse;margin:8px 0;font-size:12.5px;background:#fff;border:1px solid var(--bdr);border-radius:5px}
+.iss-detail th{background:#f7f8fc;text-align:left;padding:5px 10px;font-weight:600;border-bottom:1px solid var(--bdr);font-size:11.5px;color:var(--sub)}
+.iss-detail td{padding:5px 10px;border-bottom:1px solid #f3f4f8;vertical-align:top}
+.iss-detail tr:last-child td{border-bottom:none}
+.iss-detail .diff-old{color:var(--sev1);font-weight:600}
+.iss-empty{text-align:center;color:var(--mut);font-size:13px;padding:30px 0}
+
+/* ─── 手机适配 ─── */
+@media (max-width:768px){
+  #bar{height:auto;min-height:44px;flex-wrap:wrap;padding:6px 10px;gap:6px}
+  #bar h1{font-size:12px;width:100%}
+  #hint{display:none}
+  .tabs{flex:1}.tabs button{padding:4px 9px;font-size:10.5px}
+  #canvas,#issues-panel{top:74px}
+  #issues-panel{padding:10px 12px 40px}
+  .iss-scope{width:100%}
+  .iss-nums{margin-left:0}
+  .iss-bar .bl{min-width:auto;width:100%}
+  .iss-bar button{flex:1;padding:4px 8px;font-size:11.5px}
+  .iss-line{flex-wrap:wrap}
+  .iss-mark{margin-left:0;width:100%;order:3;margin-top:6px}
+  .iss-mark button{flex:1}
+  .iss-meta{margin-left:0}
+  .mt .v{white-space:normal;word-break:break-all}
+  .iss-detail{padding:3px 11px 12px}
+  .iss-detail table{display:block;overflow-x:auto}
+}
+</style>
+</head>
+<body>
+<div id="bar">
+  <h1>新版落地页 · 全链路（串联版）</h1>
+  <div class="tabs">
+    <button onclick="goTab('consign')" id="tb-consign" class="on">寄售</button>
+    <button onclick="goTab('recycle')" id="tb-recycle">回收</button>
+    <button onclick="goTab('hall')" id="tb-hall">挂售</button>
+    <button onclick="goTab('issues')" id="tb-issues">问题</button>
+  </div>
+  <div class="hint" id="hint">点击按钮 → 高亮整条链路 · 问题Tab → 查看全部审计发现</div>
+  <div class="spacer"></div>
+  <div class="zb" id="zb"><button onclick="zi()">+</button><button onclick="zo()">−</button><button onclick="zf()">⊡</button></div>
+</div>
+<div id="canvas"><div id="world"></div></div>
+<div id="issues-panel"></div>
+<div class="tip" id="tip"></div>
+<div id="reset-bar" onclick="resetAll()">点击取消高亮</div>
+
+<script>
+const W=2800,H=1800;
+let world,tipEl,cur='consign',sc=1,tx=0,ty=0,drag=false,ds={},ps={};
+
+const PAL=['#e11d48','#db2777','#c026d3','#9333ea','#7c3aed','#6366f1','#4f46e5','#2563eb','#0284c7','#0891b2','#0d9488','#059669','#16a34a','#65a30d','#ca8a04','#d97706','#ea580c','#dc2626','#be123c','#7e22ce','#4338ca','#1d4ed8','#0369a1','#047857','#b45309','#0e7490','#6d28d9','#be185d'];
+let pi=0;function nc(){return PAL[pi++%PAL.length]}
+
+
+/* ───────── NODE DEFS ───────── */
+function mkConsign(){return[
+  {id:'entry1',x:20,y:160,cls:'c-entry',ic:'入',t:'得物订单',s:'"卖了换钱"',rows:[{text:'点击 "卖了换钱"',to:'route'}]},
+  {id:'entry2',x:20,y:300,cls:'c-entry',ic:'入',t:'"我有" 页面',s:'ownerDetail',rows:[{text:'点击 "出售"',to:'route'}]},
+  {id:'route',x:230,y:200,cls:'c-route',ic:'⟩',t:'App.tsx 路由',s:'getDewuSaleIntroduceRedirectRoute',rows:[{text:'sale_ab_group → 新版落地页',to:'core'}]},
+  {id:'core',x:480,y:20,cls:'c-core',ic:'核',t:'新版落地页 · 寄售',s:'DewuSaleIntroduceNew · action_type=3',
+    secs:[
+      {label:'HEADER',rows:[
+        {text:'← 返回 → 得物订单/我有',to:'entry1'},
+        {text:'标题栏 → 服务介绍H5',to:'p_intro'},
+        {text:'"估价" → AI估价历史',to:'p_ai_hist'},
+        {text:'"订单" → 离开到"我的"',to:'p_exit'}
+      ]},
+      {label:'订单提示卡片',rows:[{text:'待处理卡 → 订单页',to:'p_order'}]},
+      {label:'商品信息',rows:[
+        {text:'缩略图 → 图片预览浮层',to:'m_img'},
+        {text:'⚠️ "换一个" → 商品列表弹窗',to:'m_goods'},
+        {text:'市场价"?" → 说明弹窗',to:'m_market'},
+        {text:'活动行 → 活动详情页',to:'p_activity'},
+        {text:'服务权益 → 权益弹窗',to:'m_service'},
+        {text:'收货须知 展开/收起',to:null}
+      ]},
+      {label:'须知关键词',rows:[
+        {text:'type=1 品相 → 弹窗',to:'m_confirm'},
+        {text:'type=4/8 协议 → 弹窗',to:'m_proto'},
+        {text:'type=3 H5 → 浏览器',to:'p_h5'},
+        {text:'type=5 保质期 → 查询页',to:'p_expiry'},
+        {text:'type=6 成色 → 弹窗',to:'m_level'}
+      ]},
+      {label:'寄售价格区',rows:[
+        {text:'尺码/品相Tab',to:null},
+        {text:'"到手价计算" → 弹窗',to:'m_calc'},
+        {text:'AI估价文字 → AI结果页',to:'p_ai_res'},
+        {text:'趋势图 → 行情弹窗',to:'m_trend'},
+        {text:'趋势描述 → 行情弹窗',to:'m_trend'},
+        {text:'补贴"?" → 规则弹窗',to:'m_subsidy'},
+        {text:'品相关键词 → 弹窗',to:'m_confirm'}
+      ]},
+      {label:'快递方式',rows:[
+        {text:'地址 → 编辑页',to:'p_addr'},
+        {text:'取件时间 → 弹窗',to:'m_time'},
+        {text:'取件/自寄切换',to:null},
+        {text:'快递公司 → 弹窗',to:'m_express'},
+        {text:'快递单号输入',to:null}
+      ]},
+      {label:'声明',rows:[{text:'关键词 → 协议弹窗',to:'m_proto'}]},
+      {label:'FOOTER',rows:[
+        {text:'左: "开始估价" → 估价页',to:'p_val'},
+        {text:'右: "提交出售" → 寄售建单',to:'submit'}
+      ]}
+    ]
+  },
+  {id:'submit',x:1040,y:20,cls:'c-page',ic:'建',t:'寄售建单',s:'createTaskOrder',rows:[
+    {text:'成功 replace → 待发货列表',to:'result_list'},
+    {text:'→ 订单详情',to:'result_detail'}
+  ]},
+  {id:'result_list',x:1300,y:20,cls:'c-result',ic:'✓',t:'寄售待发货列表',s:'consignmentNew',rows:[
+    {text:'点击订单 → 详情',to:'result_detail'},
+    {text:'"去发货" → 发货页',to:'p_deliver'},
+    {text:'← 返回(replace后) → 首页',to:'p_exit'}
+  ]},
+  {id:'result_detail',x:1300,y:220,cls:'c-result',ic:'✓',t:'寄售订单详情',s:'consignDetail',bug:1,rows:[
+    {text:'⚠️ "关联单号"replace自身',to:null},
+    {text:'"去发货" → 发货页',to:'p_deliver'},
+    {text:'← 返回 → 待发货列表',to:'result_list'}
+  ]},
+  {id:'p_deliver',x:1560,y:100,cls:'c-page',ic:'发',t:'发货页',s:'consign/deliver',rows:[
+    {text:'成功 → 待发货列表',to:'result_list'},
+    {text:'← 返回 → 详情',to:'result_detail'}
+  ]},
+  {id:'p_exit',x:20,y:20,cls:'c-exit',ic:'出',t:'"我的"/首页',s:'离开流程',rows:[]},
+  {id:'p_intro',x:230,y:20,cls:'c-exit',ic:'H5',t:'服务介绍',rows:[{text:'关闭→落地页',to:'core'}]},
+  {id:'p_ai_hist',x:230,y:470,cls:'c-page',ic:'AI',t:'AI估价历史',rows:[{text:'←→落地页',to:'core'}]},
+  {id:'p_order',x:230,y:540,cls:'c-page',ic:'订',t:'订单页',rows:[{text:'←→落地页',to:'core'}]},
+  {id:'p_activity',x:230,y:610,cls:'c-page',ic:'活',t:'活动详情',rows:[{text:'←→落地页',to:'core'}]},
+  {id:'p_h5',x:230,y:680,cls:'c-exit',ic:'H5',t:'H5网页',rows:[{text:'关闭→落地页',to:'core'}]},
+  {id:'p_expiry',x:230,y:750,cls:'c-page',ic:'期',t:'保质期查询',rows:[{text:'←→落地页',to:'core'}]},
+  {id:'p_ai_res',x:230,y:820,cls:'c-page',ic:'AI',t:'AI估价结果',rows:[{text:'←→落地页',to:'core'}]},
+  {id:'p_addr',x:230,y:890,cls:'c-page',ic:'址',t:'地址编辑',rows:[{text:'完成→落地页',to:'core'}]},
+  {id:'p_val',x:230,y:960,cls:'c-page',ic:'估',t:'估价/相机',rows:[{text:'←→落地页',to:'core'}]},
+  {id:'m_img',x:1040,y:200,cls:'c-popup',ic:'图',t:'图片预览',rows:[{text:'关闭→落地页',to:'core'}]},
+  {id:'m_goods',x:1040,y:280,cls:'c-popup',ic:'换',t:'商品列表弹窗',s:'GoodsListPopup',bug:1,rows:[
+    {text:'搜索→搜索页',to:'p_search'},
+    {text:'⚠️ push新落地页',to:'core'},
+    {text:'关闭→落地页',to:'core'}
+  ]},
+  {id:'p_search',x:1300,y:390,cls:'c-page',ic:'搜',t:'搜索页',rows:[{text:'选中→落地页',to:'core'},{text:'←→落地页',to:'core'}]},
+  {id:'m_market',x:1040,y:420,cls:'c-popup',ic:'?',t:'市场价说明',rows:[{text:'关闭→落地页',to:'core'}]},
+  {id:'m_service',x:1040,y:490,cls:'c-popup',ic:'权',t:'服务权益',rows:[{text:'关闭→落地页',to:'core'}]},
+  {id:'m_confirm',x:1040,y:560,cls:'c-popup',ic:'品',t:'品相确认',rows:[{text:'关闭→落地页',to:'core'}]},
+  {id:'m_proto',x:1040,y:630,cls:'c-popup',ic:'协',t:'协议弹窗',rows:[{text:'链接→H5',to:'p_h5'},{text:'关闭→落地页',to:'core'}]},
+  {id:'m_level',x:1040,y:720,cls:'c-popup',ic:'级',t:'成色标准',rows:[{text:'关闭→落地页',to:'core'}]},
+  {id:'m_calc',x:1300,y:490,cls:'c-popup',ic:'算',t:'到手价计算',rows:[{text:'关闭→落地页',to:'core'}]},
+  {id:'m_trend',x:1300,y:570,cls:'c-popup',ic:'趋',t:'价格行情',rows:[{text:'"?"→成色弹窗',to:'m_level'},{text:'关闭→落地页',to:'core'}]},
+  {id:'m_subsidy',x:1300,y:660,cls:'c-popup',ic:'补',t:'补贴规则',rows:[{text:'关闭→落地页',to:'core'}]},
+  {id:'m_time',x:1300,y:730,cls:'c-popup',ic:'时',t:'取件时间',rows:[{text:'→落地页',to:'core'}]},
+  {id:'m_express',x:1300,y:790,cls:'c-popup',ic:'递',t:'快递公司',rows:[{text:'→落地页',to:'core'}]},
+  {id:'m_auth',x:1560,y:280,cls:'c-popup',ic:'授',t:'授权弹窗',rows:[{text:'→地址编辑',to:'p_addr'},{text:'→落地页',to:'core'}]},
+  {id:'m_pay',x:1560,y:400,cls:'c-popup',ic:'付',t:'支付运费',rows:[{text:'成功→待发货',to:'result_list'},{text:'关闭→落地页',to:'core'}]},
+  {id:'m_pickup',x:1560,y:520,cls:'c-popup',ic:'取',t:'取件结果',rows:[{text:'return→订单/我有',to:'entry1'},{text:'continue→落地页',to:'core'},{text:'reship→建单',to:'submit'}]},
+]}
+function mkRecycle(){return[
+  {id:'entry1',x:20,y:160,cls:'c-entry',ic:'入',t:'得物订单',s:'"卖了换钱"',rows:[{text:'"卖了换钱"',to:'route'}]},
+  {id:'entry2',x:20,y:300,cls:'c-entry',ic:'入',t:'"我有"',s:'ownerDetail',rows:[{text:'"出售"',to:'route'}]},
+  {id:'route',x:230,y:200,cls:'c-route',ic:'⟩',t:'App.tsx 路由',rows:[{text:'sale_ab_group→落地页',to:'core'}]},
+  {id:'core',x:480,y:20,cls:'c-core',ic:'核',t:'新版落地页 · 回收',s:'action_type=2',
+    secs:[
+      {label:'HEADER',rows:[{text:'← 返回→订单/我有',to:'entry1'},{text:'标题→H5',to:'p_intro'},{text:'估价→AI历史',to:'p_ai'},{text:'订单→离开',to:'p_exit'}]},
+      {label:'订单提示',rows:[{text:'卡片→订单页',to:'p_order'}]},
+      {label:'商品信息',rows:[{text:'缩略图→预览',to:'m_img'},{text:'⚠️换一个→列表弹窗',to:'m_goods'},{text:'市场价?→弹窗',to:'m_market'},{text:'活动行→详情',to:'p_activity'},{text:'权益→弹窗',to:'m_service'},{text:'须知展开/收起',to:null}]},
+      {label:'须知关键词',rows:[{text:'type=1 品相→确认弹窗',to:'m_delivery'},{text:'type=2 税优→弹窗',to:'m_tax'},{text:'type=4/8 协议弹窗',to:'m_proto'},{text:'type=3 H5',to:'p_h5'},{text:'type=5 保质期',to:'p_expiry'},{text:'type=6 成色弹窗',to:'m_level'}]},
+      {label:'回收价格区',rows:[{text:'趋势行→行情弹窗',to:'m_trend'}]},
+      {label:'快递方式',rows:[{text:'地址→编辑',to:'p_addr'},{text:'取件时间→弹窗',to:'m_time'},{text:'切换',to:null},{text:'快递公司→弹窗',to:'m_express'},{text:'单号输入',to:null}]},
+      {label:'声明',rows:[{text:'关键词→协议弹窗',to:'m_proto'}]},
+      {label:'FOOTER',rows:[{text:'左: 估价',to:'p_val'},{text:'右: "提交回收"→建单',to:'submit'}]}
+    ]
+  },
+  {id:'submit',x:1040,y:20,cls:'c-page',ic:'建',t:'回收建单',s:'submitRecycle',rows:[{text:'replace→列表',to:'result_list'},{text:'寄出→详情',to:'result_detail'}]},
+  {id:'result_list',x:1300,y:20,cls:'c-result',ic:'✓',t:'回收订单列表',s:'recycleRnList',rows:[{text:'→详情',to:'result_detail'},{text:'←返回→首页',to:'p_exit'}]},
+  {id:'result_detail',x:1300,y:170,cls:'c-result',ic:'✓',t:'回收订单详情',s:'recycleRnDetail',rows:[{text:'寄出→物流页',to:'p_ship'},{text:'←→列表',to:'result_list'}]},
+  {id:'p_ship',x:1560,y:70,cls:'c-page',ic:'寄',t:'物流页',rows:[{text:'提交→列表',to:'result_list'},{text:'←→详情',to:'result_detail'}]},
+  {id:'p_exit',x:20,y:20,cls:'c-exit',ic:'出',t:'首页/我的',rows:[]},
+  {id:'p_intro',x:230,y:20,cls:'c-exit',ic:'H5',t:'服务介绍',rows:[{text:'关闭→落地页',to:'core'}]},
+  {id:'p_ai',x:230,y:430,cls:'c-page',ic:'AI',t:'AI估价历史',rows:[{text:'←→落地页',to:'core'}]},
+  {id:'p_order',x:230,y:500,cls:'c-page',ic:'订',t:'订单页',rows:[{text:'←→落地页',to:'core'}]},
+  {id:'p_activity',x:230,y:570,cls:'c-page',ic:'活',t:'活动详情',rows:[{text:'←→落地页',to:'core'}]},
+  {id:'p_h5',x:230,y:640,cls:'c-exit',ic:'H5',t:'H5网页',rows:[{text:'关闭→落地页',to:'core'}]},
+  {id:'p_expiry',x:230,y:710,cls:'c-page',ic:'期',t:'保质期查询',rows:[{text:'←→落地页',to:'core'}]},
+  {id:'p_addr',x:230,y:780,cls:'c-page',ic:'址',t:'地址编辑',rows:[{text:'完成→落地页',to:'core'}]},
+  {id:'p_val',x:230,y:850,cls:'c-page',ic:'估',t:'估价/相机',rows:[{text:'←→落地页',to:'core'}]},
+  {id:'m_img',x:1040,y:180,cls:'c-popup',ic:'图',t:'图片预览',rows:[{text:'关闭→落地页',to:'core'}]},
+  {id:'m_goods',x:1040,y:260,cls:'c-popup',ic:'换',t:'商品列表弹窗',bug:1,rows:[{text:'搜索→搜索页',to:'p_search'},{text:'⚠️push落地页',to:'core'},{text:'关闭→落地页',to:'core'}]},
+  {id:'p_search',x:1300,y:340,cls:'c-page',ic:'搜',t:'搜索页',rows:[{text:'←→落地页',to:'core'}]},
+  {id:'m_market',x:1040,y:390,cls:'c-popup',ic:'?',t:'市场价说明',rows:[{text:'关闭→落地页',to:'core'}]},
+  {id:'m_service',x:1040,y:450,cls:'c-popup',ic:'权',t:'服务权益',rows:[{text:'关闭→落地页',to:'core'}]},
+  {id:'m_delivery',x:1040,y:520,cls:'c-popup',ic:'品',t:'回收品相确认',rows:[{text:'关闭→落地页',to:'core'}]},
+  {id:'m_tax',x:1040,y:600,cls:'c-popup',ic:'税',t:'税优弹窗',rows:[{text:'同意→落地页',to:'core'},{text:'协议→H5',to:'p_h5'}]},
+  {id:'m_proto',x:1040,y:700,cls:'c-popup',ic:'协',t:'协议弹窗',rows:[{text:'链接→H5',to:'p_h5'},{text:'关闭→落地页',to:'core'}]},
+  {id:'m_level',x:1040,y:790,cls:'c-popup',ic:'级',t:'成色标准',rows:[{text:'关闭→落地页',to:'core'}]},
+  {id:'m_trend',x:1300,y:450,cls:'c-popup',ic:'趋',t:'价格行情',rows:[{text:'?→成色弹窗',to:'m_level'},{text:'关闭→落地页',to:'core'}]},
+  {id:'m_time',x:1300,y:540,cls:'c-popup',ic:'时',t:'取件时间',rows:[{text:'→落地页',to:'core'}]},
+  {id:'m_express',x:1300,y:610,cls:'c-popup',ic:'递',t:'快递公司',rows:[{text:'→落地页',to:'core'}]},
+  {id:'m_auth',x:1560,y:260,cls:'c-popup',ic:'授',t:'授权弹窗',rows:[{text:'→地址',to:'p_addr'},{text:'→落地页',to:'core'}]},
+  {id:'m_pickup',x:1560,y:380,cls:'c-popup',ic:'取',t:'取件结果',rows:[{text:'return→订单',to:'entry1'},{text:'continue→落地页',to:'core'},{text:'reship→建单',to:'submit'}]},
+]}
+function mkHall(){return[
+  {id:'entry1',x:20,y:100,cls:'c-entry',ic:'入',t:'得物订单',s:'"卖了换钱"',rows:[{text:'"卖了换钱"',to:'route'}]},
+  {id:'entry2',x:20,y:230,cls:'c-entry',ic:'入',t:'"我有"',rows:[{text:'"出售"',to:'route'}]},
+  {id:'route',x:220,y:140,cls:'c-route',ic:'⟩',t:'App.tsx 路由',rows:[{text:'is_hall_sell=1→挂售',to:'core'}]},
+  {id:'core',x:460,y:40,cls:'c-core',ic:'核',t:'挂售填写页',s:'hallSellGoodsNew',
+    secs:[
+      {label:'HEADER',rows:[{text:'← 返回→订单/我有',to:'entry1'}]},
+      {label:'商品',rows:[{text:'图片→预览',to:'m_img'},{text:'规格选择',to:null}]},
+      {label:'价格',rows:[{text:'价格输入',to:null},{text:'到手价说明→弹窗',to:'m_price'}]},
+      {label:'协议',rows:[{text:'协议→H5',to:'p_agree'}]},
+      {label:'FOOTER',rows:[{text:'"去出价"→出价页',to:'bid'},{text:'"发布"→订单详情',to:'result_detail'}]}
+    ]
+  },
+  {id:'bid',x:800,y:40,cls:'c-page',ic:'价',t:'挂售出价页',s:'BidView',bug:1,rows:[
+    {text:'"确认"→详情',to:'result_detail'},
+    {text:'"查看商品"→列表',to:'result_list'},
+    {text:'←→填写页',to:'core'}
+  ]},
+  {id:'result_detail',x:1100,y:40,cls:'c-result',ic:'✓',t:'挂售订单详情',s:'hallSellOrderDetail',bug:1,rows:[
+    {text:'⚠️ Android返回键失效',to:null},
+    {text:'"我的挂售"→列表',to:'result_list'}
+  ]},
+  {id:'result_list',x:1100,y:230,cls:'c-result',ic:'✓',t:'拍图售卖列表',s:'7个Tab',rows:[
+    {text:'点击→详情',to:'result_detail'},
+    {text:'←返回→订单/我有',to:'entry1'}
+  ]},
+  {id:'m_img',x:800,y:250,cls:'c-popup',ic:'图',t:'图片预览',rows:[{text:'关闭→填写页',to:'core'}]},
+  {id:'m_price',x:800,y:330,cls:'c-popup',ic:'?',t:'价格说明',rows:[{text:'关闭→填写页',to:'core'}]},
+  {id:'p_agree',x:800,y:410,cls:'c-exit',ic:'H5',t:'协议H5',rows:[{text:'关闭→填写页',to:'core'}]},
+]}
+
+/* ───────── BUILD ───────── */
+const views={};
+function build(name,nodes){
+  pi=0;
+  nodes.forEach(n=>{
+    const ar=[];if(n.rows)ar.push(...n.rows);if(n.secs)n.secs.forEach(s=>ar.push(...s.rows));
+    ar.forEach(r=>{r._c=r.to?nc():'#cbd5e1';r._rid=++_rc});
+  });
+  const v=document.createElement('div');v.className='view';v.id='v-'+name;
+  v.style.width=W+'px';v.style.height=H+'px';
+  const NS='http://www.w3.org/2000/svg';
+  const svg=document.createElementNS(NS,'svg');svg.setAttribute('width',W);svg.setAttribute('height',H);
+  const defs=document.createElementNS(NS,'defs');svg.appendChild(defs);
+  v.appendChild(svg);
+  const idx={},els={};
+  nodes.forEach(n=>{idx[n.id]=n});
+  nodes.forEach(n=>{const el=mkN(n,name);v.appendChild(el);els[n.id]=el});
+  const edges=[];
+  setTimeout(()=>{
+    nodes.forEach(n=>{const e=els[n.id];n._w=e.offsetWidth;n._h=e.offsetHeight});
+    nodes.forEach(n=>{
+      const ar=[];if(n.rows)ar.push(...n.rows);if(n.secs)n.secs.forEach(s=>ar.push(...s.rows));
+      ar.forEach(r=>{
+        if(!r.to||!idx[r.to])return;
+        const tgt=idx[r.to],c=r._c;
+        const bel=els[n.id].querySelector(`[data-rid="${r._rid}"]`);
+        let fy=n.y+(n._h||40)/2;if(bel)fy=n.y+bel.offsetTop+bel.offsetHeight/2;
+        const ty2=tgt.y+(tgt._h||40)/2;
+        let fx,tx2;const nR=n.x+(n._w||160),tR=tgt.x+(tgt._w||160);
+        if(tgt.x>=nR-20){fx=nR;tx2=tgt.x}else if(n.x>=tR-20){fx=n.x;tx2=tR}else{fx=nR;tx2=tgt.x}
+        const dx=tx2-fx,cp=Math.max(Math.abs(dx)*.3,30);
+        const d2=`M${fx},${fy} C${fx+(dx>=0?cp:-cp)},${fy} ${tx2+(dx>=0?-cp:cp)},${ty2} ${tx2},${ty2}`;
+        const mk=document.createElementNS(NS,'marker');mk.id=name+'-m'+r._rid;
+        mk.setAttribute('markerWidth','6');mk.setAttribute('markerHeight','4');mk.setAttribute('refX','6');mk.setAttribute('refY','2');mk.setAttribute('orient','auto');
+        const mp=document.createElementNS(NS,'path');mp.setAttribute('d','M0,0 L6,2 L0,4');mp.setAttribute('fill',c);mk.appendChild(mp);defs.appendChild(mk);
+        const p=document.createElementNS(NS,'path');p.setAttribute('d',d2);p.setAttribute('stroke',c);p.setAttribute('stroke-width','1.4');p.setAttribute('fill','none');p.setAttribute('opacity','0.55');p.setAttribute('marker-end',`url(#${mk.id})`);
+        if(n.cls==='c-popup'||tgt.cls==='c-popup')p.setAttribute('stroke-dasharray','4,3');
+        svg.appendChild(p);
+        edges.push({rid:r._rid,p,from:n.id,to:tgt.id,c});
+      });
+    });
+  },80);
+  world.appendChild(v);
+  // Build forward adjacency for chain tracing
+  const fwd={};
+  nodes.forEach(n=>{
+    const ar=[];if(n.rows)ar.push(...n.rows);if(n.secs)n.secs.forEach(s=>ar.push(...s.rows));
+    ar.forEach(r=>{
+      if(!r.to||!idx[r.to])return;
+      if(!fwd[n.id])fwd[n.id]=[];
+      fwd[n.id].push({to:r.to,rid:r._rid});
+    });
+  });
+  views[name]={v,svg,nodes,idx,els,edges,fwd};
+}
+let _rc=0;
+
+function mkN(n,vn){
+  const el=document.createElement('div');el.className='nd '+n.cls;el.style.left=n.x+'px';el.style.top=n.y+'px';el.dataset.nid=n.id;el.dataset.vn=vn;
+  let h=`<div class="h"><div class="ic">${n.ic||''}</div><div class="t">${n.t}</div>${n.s?`<div class="s">${n.s}</div>`:''}</div>`;
+  const mr=r=>`<div class="r" data-rid="${r._rid}" data-vn="${vn}"><span class="d" style="background:${r._c};border-color:${r._c}"></span>${r.text}</div>`;
+  if(n.secs){n.secs.forEach(s=>{h+=`<div class="sec">${s.label}</div><div class="bd">`;s.rows.forEach(r=>{h+=mr(r)});h+='</div>'})}
+  else if(n.rows&&n.rows.length){h+='<div class="bd">';n.rows.forEach(r=>{h+=mr(r)});h+='</div>'}
+  if(n.bug)h+=`<div class="bug-badge">!</div>`;
+  el.innerHTML=h;
+  el.querySelectorAll('.r').forEach(re=>{re.addEventListener('click',e=>{e.stopPropagation();hlChain(parseInt(re.dataset.rid),re.dataset.vn)})});
+  return el;
+}
+
+/* ───────── CHAIN HIGHLIGHT ───────── */
+function hlChain(rid,vn){
+  resetAll();
+  const vd=views[vn];if(!vd)return;
+  // Find the row and its source node
+  let srcId=null,tgtId=null;
+  vd.nodes.forEach(n=>{
+    const ar=[];if(n.rows)ar.push(...n.rows);if(n.secs)n.secs.forEach(s=>ar.push(...s.rows));
+    ar.forEach(r=>{if(r._rid===rid){srcId=n.id;tgtId=r.to}});
+  });
+  if(!srcId)return;
+  // BFS forward from target to find the full downstream chain
+  const chain=new Set([srcId]);
+  const chainEdges=new Set([rid]);
+  if(tgtId&&vd.idx[tgtId]){
+    // 不再按 x 坐标过滤方向：跳转后页面自身的其他跳转路径（含回跳落地页）也要一起高亮。
+    // 用深度上限 + visited 去重防止枢纽节点把整张图拉亮。
+    const MAXD=3;
+    const q=[[tgtId,0]];const visited=new Set([srcId,tgtId]);
+    chain.add(tgtId);
+    while(q.length){
+      const [cur2,dep]=q.shift();
+      (vd.fwd[cur2]||[]).forEach(e=>{
+        if(!vd.idx[e.to])return;
+        chainEdges.add(e.rid);          // 回环/回跳边同样高亮
+        chain.add(e.to);
+        if(!visited.has(e.to)&&dep+1<MAXD){visited.add(e.to);q.push([e.to,dep+1])}
+      });
+    }
+  }
+  // Apply highlight
+  Object.entries(vd.els).forEach(([id,el])=>{el.classList.toggle('dim',!chain.has(id));el.classList.toggle('glow',chain.has(id))});
+  vd.edges.forEach(e=>{const hit=chainEdges.has(e.rid)||(chain.has(e.from)&&chain.has(e.to));e.p.classList.toggle('dim',!hit);e.p.classList.toggle('hl',hit);e.p.setAttribute('opacity',hit?'1':'0.55')});
+  const rowEl=document.querySelector(`[data-rid="${rid}"]`);if(rowEl)rowEl.classList.add('hl');
+  document.getElementById('reset-bar').style.display='block';
+}
+
+
+function resetAll(){
+  const vd=views[cur];if(!vd)return;
+  Object.values(vd.els).forEach(el=>{el.classList.remove('dim','glow')});
+  vd.edges.forEach(e=>{e.p.classList.remove('dim','hl');e.p.setAttribute('opacity','0.55')});
+  document.querySelectorAll('.r.hl').forEach(r=>r.classList.remove('hl'));
+  document.getElementById('reset-bar').style.display='none';
+}
+
+
+/* ───────── ISSUES DATA ─────────
+   范围：一键转卖「渠道新版」链路
+   = 得物订单/「我有」入口 → DewuSaleForMoneyTransfer 中转 → App.tsx 路由
+     → DewuSaleIntroduceNew（寄售 action_type=3 / 回收 action_type=2）
+     → hallSellGoodsNew + BidView（挂售）→ 建单 → 结果页
+   来源：resell_audit.html 42 项，按渠道过滤后保留 28 项（+1 项来自本链路图标注）
+   已剔除 14 项：仅属三合一 sellTabMergeContainer / 95分出售首页 / 得物出售首页
+     DewuSellEntry / 集市 C2CSubmit / legacy recovery / 数码回收 的问题
+*/
+const ISSUES=[
+{key:'dim1',title:'一、文案前后一致性',items:[
+  {id:'T1',sev:'c',title:'同一功能在新版渠道内并存 4 套名字，用户建不起心智模型',
+   page:'DewuSaleIntroduceNew',mod:'Header 标题栏 / Footer 提交区 / 得物入口按钮',
+   fld:'title · currentSubmit.button · action_type',fb:'#965 #974',
+   desc:'走完一条链路会依次看到 4 个词指同一件事：入口按钮「卖了换钱」→ 页面标题「闲置转卖」→ 提交按钮「提交寄卖」（action_type=3）/「提交换钱」（action_type=2）。#965 原话"不能很直观分辨 3 种模式有什么区别"。',
+   detail:`<table><tr><th>位置</th><th>用词</th><th>来源</th></tr>
+   <tr><td>得物订单入口按钮</td><td>卖了换钱</td><td>服务端 sell_href</td></tr>
+   <tr><td>落地页标题</td><td>闲置转卖</td><td>接口返回 title</td></tr>
+   <tr><td>提交按钮（寄售）</td><td class="diff-old">提交寄卖</td><td>currentSubmit.button</td></tr>
+   <tr><td>提交按钮（回收）</td><td class="diff-old">提交换钱</td><td>currentSubmit.button</td></tr></table>`,
+   fix:'落地页标题、提交按钮、入口按钮统一为「寄售」「挂售」「回收」，「高价」「换钱」只能出现在副标题。'},
+  {id:'T2',sev:'m',title:'入口按钮与落地页标题词面无关联',
+   page:'得物订单 / ownerDetail → DewuSaleIntroduceNew',mod:'入口按钮 / Header 标题栏',
+   fld:'sell_href · title',
+   desc:'点「卖了换钱」，落地页标题却是「闲置转卖」；挂售链路进 hallSellGoodsNew 又是另一套标题。用户无法确认自己点对了地方。',
+   fix:'入口按钮文案与落地页标题同名。'},
+  {id:'T3',sev:'m',title:'提交按钮在本渠道内 5 种叫法',
+   page:'DewuSaleIntroduceNew / hallSellGoodsNew / BidView',mod:'Footer 提交区',
+   fld:'currentSubmit.button',
+   desc:'同样是"确认出售"这个动作，同一条渠道内的三个页面用了 5 种按钮文案。',
+   detail:`<table><tr><th>页面</th><th>按钮文案</th><th>代码位置</th></tr>
+   <tr><td>落地页 · 寄售</td><td>提交寄卖</td><td>DewuSaleIntroduceNewView.tsx:2080</td></tr>
+   <tr><td>落地页 · 回收</td><td>提交换钱</td><td>同上，currentSubmit.button</td></tr>
+   <tr><td>落地页 · 默认兜底</td><td>提交出售</td><td>默认值</td></tr>
+   <tr><td>挂售填写页</td><td>发布 / 发布商品</td><td>DetailView.js:2289</td></tr>
+   <tr><td>挂售出价页</td><td>确认出售</td><td>BidView.js</td></tr></table>`,
+   fix:'寄售「提交寄售」、挂售「确认挂售」、回收「提交回收」，去掉"换钱""发布""出售"等模糊词。'},
+  {id:'T4',sev:'m',title:'路由分流参数 sale_type 与 select_sell_type 数值含义相反',
+   page:'App.tsx 路由层',mod:'getDewuSaleIntroduceRedirectRoute',
+   fld:'sale_type · select_sell_type · is_hall_sell · sale_ab_group',
+   desc:'两套参数体系数值冲突，无转换函数，全靠开发者记忆区分。新版渠道入口正是靠这些字段分流。',
+   detail:`<table><tr><th>值</th><th>sale_type 含义</th><th>select_sell_type 含义</th></tr>
+   <tr><td>1</td><td>拍卖(买家侧)</td><td>回收</td></tr>
+   <tr><td>2</td><td>—</td><td>寄售</td></tr>
+   <tr><td>3</td><td class="diff-old">寄售</td><td class="diff-old">挂售（完全相反）</td></tr></table>`,
+   fix:'加显式转换函数并加 default 分支；把 sale_type 直接当 select_sell_type 传会把想寄售的用户导到挂售。'},
+  {id:'T5',sev:'m',title:'寄售价与回收价口径不同且不解释差异',
+   page:'DewuSaleIntroduceNew',mod:'寄售价格区 ConsignPriceTab / 回收价格区',
+   fld:'price · 「预计可卖」文案',fb:'#990',
+   desc:'寄售显示「预计可卖 ¥882」，回收显示回收估价，两者口径不同、金额差距大，页面不给任何解释。#990："回收和寄售的预计价格差异过大…会比较影响用户体验。"',
+   fix:'统一称「预估收入」，并在两种方式差价大时说明原因（回收即时到账 vs 寄售卖出后到账）。'},
+  {id:'T6',sev:'l',title:'取件方式措辞不一：上门取件 / 上门回收 / 免费上门取件',
+   page:'DewuSaleIntroduceNew（寄售 + 回收）',mod:'快递方式 SellDeliveryMethod',fld:'取件方式文案'},
+  {id:'T7',sev:'l',title:'自寄措辞不一：自行发货 / 自行邮寄 / 自寄',
+   page:'DewuSaleIntroduceNew',mod:'快递方式 SellDeliveryMethod（自寄分支）',fld:'自寄 Tab 文案 · express_no'},
+  {id:'T8',sev:'l',title:'返回挽留弹窗文案风格不一',
+   page:'DewuSaleIntroduceNew / hallSellGoodsNew',mod:'返回拦截弹窗',fld:'弹窗标题文案',
+   desc:'寄售是「是否需要稍后再寄」，挂售是「确认退出发布」，还有「是否放弃提交」，三种语气与句式。'},
+  {id:'T9',sev:'l',title:'换商品弹窗搜索文案不一致',
+   page:'GoodsListPopup → 搜索页',mod:'商品列表弹窗搜索框',fld:'placeholder（接口下发）',
+   desc:'「货号搜索」「搜索」与接口下发占位文案混用。'},
+  {id:'T10',sev:'l',title:'成功态文案不一：提交成功 / 出售成功 / 发布成功',
+   page:'寄售 → ConsignmentNew · 挂售 → hallSellOrderDetail',mod:'建单成功 toast / 成功页',fld:'toast 文案'}
+]},
+{key:'dim2',title:'二、页面结构前后一致性',items:[
+  {id:'S1',sev:'c',title:'落地页不提供出售方式选择，用户看不到寄售/回收对比',
+   page:'DewuSaleIntroduceNew',mod:'整页结构（单方式单页）',
+   fld:'action_type（2=回收 3=寄售，服务端决定）',fb:'#974 #990',
+   desc:'服务端下发 action_type 直接决定用户只能寄售或只能回收，页面无 Tab、无切换入口、无"看看别的方式"。三合一页面至少能切 Tab 比价，从新版落地页进来完全没有对比机会。#974"有些跳到回收，有些跳到平台寄卖，看不到规律"根因就在这。',
+   fix:'加"查看其他出售方式"入口；只支持一种方式时页面明示「该商品仅支持 X（原因：xxx）」。'},
+  {id:'S2',sev:'c',title:'AB 实验导致同一入口两次进入结构完全不同',
+   page:'App.tsx → DewuSaleIntroduceNew / sellTabMergeContainer',mod:'路由 AB 分流',
+   fld:'sale_ab_group · is_hall_sell',
+   desc:'同一个得物订单入口、同一个 spu_id，AB 切组后这次进新版落地页（2280 行单页，完整估价+发货+提交），下次进三合一（Tab+简化表单），信息密度和操作步骤都不一样。用户："上次我从订单进来是一个样子，这次进来完全不一样了。"',
+   fix:'实验期内对同一用户锁定分组，或直接收敛为一套（见 M1）。'},
+  {id:'S3',sev:'m',title:'取件时间未默认选中最近可用时段',
+   page:'DewuSaleIntroduceNew',mod:'快递方式 SellDeliveryMethod → 取件时间弹窗 TakeTimePopup',
+   fld:'取件时间（默认空）',fb:'#967',
+   desc:'#967："为啥不给我自动选一个最近可取件时间。" 进页面后取件时间为空，必须手动点开弹窗选一次才能提交。',
+   fix:'默认选中最近可用时段，允许用户改。'},
+  {id:'S4',sev:'m',title:'落地页 2280 行单页与三合一功能高度重叠',
+   page:'DewuSaleIntroduceNewView.tsx',mod:'全页（选商品 / 估价 / 发货 / 提交）',fld:'—',
+   desc:'与 sellTabMergeContainer 完成的是同一个流程，但 UI 结构完全不同，两边合计 4000+ 行独立维护，任何需求都要改两处、测两遍。',
+   fix:'见 M1 合并方案。'},
+  {id:'S5',sev:'m',title:'寄售提交后 replace 导致返回栈断裂',
+   page:'DewuSaleIntroduceNew → ConsignmentNew',mod:'建单成功跳转 createTaskOrder',
+   fld:'replace（而非 push）',
+   desc:'提交成功后 replace 到待发货列表，落地页被移出路由栈。用户在列表按返回直接回首页，想"再卖一件"必须从头走入口。',
+   fix:'保留出售页，或返回时回到入口页而非首页。'},
+  {id:'S6',sev:'m',title:'Header「订单」快捷入口直接离开出售流程',
+   page:'DewuSaleIntroduceNew',mod:'Header 快捷入口（估价 / 订单）',fld:'「订单」跳转 target',
+   desc:'Header 上的「订单」跳到「我的」，整条出售链路被中断且无法返回到填写中的表单，已选规格、已填地址全部丢失。同排的「估价」是可返回的，两个入口行为不一致。',
+   fix:'改为半屏展示，或返回时恢复表单状态。'}
+]},
+{key:'dim3',title:'三、哪些模块可以合并',items:[
+  {id:'M1',sev:'c',title:'DewuSaleIntroduceNew 与 sellTabMergeContainer 应合并为一个页面',
+   page:'DewuSaleIntroduceNew / sellTabMergeContainer',mod:'选方式 / 估价 / 发货 / 提交 / 换商品',
+   fld:'action_type ↔ select_sell_type',
+   desc:'两个页面做的是同一件事：让用户选出售方式并提交。各自维护 2000+ 行，AB 切换还导致体验断裂（S2）。',
+   detail:`<table><tr><th>能力</th><th>DewuSaleIntroduceNew</th><th>sellTabMergeContainer</th></tr>
+   <tr><td>选方式</td><td class="diff-old">服务端决定，用户无感</td><td>Tab 切换</td></tr>
+   <tr><td>估价展示</td><td>内联 ConsignPriceTab</td><td>各 Tab 内嵌</td></tr>
+   <tr><td>发货方式</td><td>内联 SellDeliveryMethod</td><td>部分 Tab 内嵌</td></tr>
+   <tr><td>换商品</td><td>GoodsListPopup</td><td>SpuPropertyPopup</td></tr></table>`,
+   fix:'以三合一为基础（Tab 更透明），补齐新版的步骤说明、到手价计算器、发货内联，取消 AB 实验。'},
+  {id:'M5',sev:'l',title:'DewuSaleForMoneyTransfer 中转页应删除，逻辑合入路由分发',
+   page:'DewuSaleForMoneyTransfer（「卖了换钱」中转）',mod:'中转分发',fld:'接口返回 jump_type',
+   desc:'纯中转页无 UI 价值，且接口返回空数据时白屏死路（见 J4）。分流逻辑完全可以放在 App.tsx 路由层。',
+   fix:'删页，分流上移到路由层，顺带消掉 J4。'},
+  {id:'M6',sev:'l',title:'hallSellGoodsNew/DetailView.js 是死代码',
+   page:'hallSellGoodsNew（挂售填写页）',mod:'DetailView.js',fld:'—',
+   desc:'实际生效的是 sellTabMergeHallSellGoodsNew/SellDetailView.js，旧文件仍在仓库里，改错文件会白改一轮。',
+   fix:'删除死代码。'}
+]},
+{key:'dim4',title:'四、哪些模块位置不合理',items:[
+  {id:'P1',sev:'c',title:'「在售同款管理」出现在出售页，打断"我要卖东西"的心流',
+   page:'DewuSaleIntroduceNew',mod:'订单提示卡片 OrderTipCards / 在售同款管理',
+   fld:'待发货订单卡片 + 「去发货」按钮',fb:'#966',
+   desc:'#966："第一眼看不懂，有点懵。" 该模块含完整的待发货订单卡片和操作按钮，属于「订单管理」语境，硬插在出售流程中间。',
+   fix:'移到订单/我的页面。要提示"你有待发货的单"就用一个轻量提示条（OrderTipCards 已有此能力），不要放完整卡片+按钮。'},
+  {id:'P2',sev:'m',title:'运费支付弹窗挂在出售页而非订单详情页',
+   page:'DewuSaleIntroduceNew（View.tsx:2134-2202）',mod:'支付运费弹窗 JwPayModal',fld:'弹窗挂载宿主',fb:'#981',
+   desc:'#981："在闲置转卖页和订单详情页之间来回跳转，最终支付运费弹窗叠加在闲置转卖页上而非订单详情页。" 根因是 JwPayModal 挂在落地页组件上。',
+   fix:'运费支付流程在订单详情页内闭环，不跳回出售页。'},
+  {id:'P3',sev:'m',title:'回收协议与退回说明不是提交前的强制确认',
+   page:'DewuSaleIntroduceNew（action_type=2 回收）',mod:'声明区 / 收货须知（type=4/8 协议弹窗）',
+   fld:'协议勾选态（无） · type=1 品相确认',fb:'#985',
+   desc:'#985："低于回收标准将被退回的前置说明确认，和回收服务协议为什么不是必选的勾选项，需要用户手动点开。" 现在是提交时才 toast 拦一下。',
+   fix:'提交按钮旁做强制勾选，未勾选置灰按钮。'},
+  {id:'P5',sev:'m',title:'取件时间选择粒度过粗',
+   page:'DewuSaleIntroduceNew',mod:'取件时间弹窗 TakeTimePopup',fld:'时间段（接口返回）',fb:'#983',
+   desc:'#983："德邦快递取件时间仅 08:00-20:00 一个选项，时间跨度 12 小时，颗粒度过粗。" 弹窗只是照渲染接口返回的时间段，没做拆分。',
+   fix:'接口按 2-3 小时拆分时段下发。'}
+]},
+{key:'dim5',title:'五、哪些跳转莫名其妙',items:[
+  {id:'J2',sev:'c',title:'挂售成功后 Android 返回键完全失效，用户卡死',
+   page:'hallSellOrderDetail（挂售订单详情）',mod:'backAction 返回拦截（DetailView.js:109-114）',
+   fld:'isResetRoute=true',
+   desc:'挂售提交成功 → hallSellOrderDetail(isResetRoute=true) → backAction 的该分支 return true 阻止了返回事件，但不调用任何导航方法。用户只能杀进程。',
+   fix:'isResetRoute=true 时 goBack 或 reset 到出售首页。改几行代码。'},
+  {id:'J4',sev:'c',title:'中转页白屏死路：点「卖了换钱」后永远白屏',
+   page:'DewuSaleForMoneyTransfer',mod:'render() 空数据兜底',fld:'接口空返回',
+   desc:'接口返回空数据时 render() 返回 null——无 toast（代码被注释）、无退出按钮、无超时处理。这是新版渠道的必经入口，一旦命中用户只能杀进程。',
+   fix:'加超时 → toast + goBack。顺带见 M5（删掉这一页更彻底）。'},
+  {id:'J6',sev:'m',title:'「换一个」push 到自身页面，路由栈无限增长',
+   page:'DewuSaleIntroduceNew / GoodsListPopup',mod:'商品信息区「换一个」→ 商品列表弹窗',
+   fld:"navigation.push('DewuSaleIntroduceNew', newParams)",
+   desc:'每换一次商品就多压一层栈，换了 5 次要按 5 次返回键才能退出。用户预期是"当前页刷新"。',
+   fix:'改用 replace，或直接刷新当前页数据。'},
+  {id:'J9',sev:'m',title:'寄售订单详情「关联单号」replace 自身页面',
+   page:'consignDetail（寄售订单详情）',mod:'关联单号跳转',fld:'replace → 自身路由',
+   desc:'点「关联单号」用 replace 把当前页换成同一个页面，栈内原页被顶替，返回行为与用户预期不符。',
+   note:'本项来自 resell_flow 链路图上的 bug 标注，resell_audit.html 未收录。',
+   fix:'改 push，或原地切换数据不动路由。'},
+  {id:'J7',sev:'m',title:'从「我有」进入丢失个性化上下文',
+   page:'ownerDetail → DewuSaleIntroduceNew',mod:'入口跳转 sell_href',
+   fld:'sell_href（通用流程） · 规格需重选',fb:'#967',
+   desc:'「我有」页已展示行情价、日均成本等个性化信息，点出售后跳的是通用 sell_href 流程，行情上下文断裂、规格要重新选一遍。#967"为啥不自动选取件时间"也是这个语境——从「我有」进来本该更聪明。',
+   fix:'透传已知规格与行情上下文，能预填的都预填。'},
+  {id:'J8',sev:'m',title:'服务端分流不向用户解释，同类商品行为不一致',
+   page:'App.tsx 路由 → 落地页 / 挂售页',mod:'路由分发',
+   fld:'btn.type · sale_type · select_sell_type · is_hall_sell',fb:'#974',
+   desc:'#974 原文："有些跳到回收，有些商品跳到平台寄卖，看不到规律用户我也很难分辨这些区别。" 分流规则全在服务端，客户端不解释为什么这个商品只能回收/只能寄售。',
+   fix:'落地页明确告知「该商品仅支持回收（原因：xxx）」，而不是静默跳转让用户猜。'}
+]}
+];
+
+const SEV_LABEL={c:'严重',m:'重要',l:'一般'};
+const DIM_SHORT={dim1:'文案一致性',dim2:'页面结构',dim3:'可合并模块',dim4:'模块位置',dim5:'跳转异常'};
+let typeFilter='all',sevFilter='all',markFilter='all';
+
+/* 标注结果本地持久化，刷新不丢 */
+const MK_KEY='resell_flow_marks_v1';
+let MARKS={};
+try{MARKS=JSON.parse(localStorage.getItem(MK_KEY)||'{}')||{}}catch(e){MARKS={}}
+function saveMarks(){try{localStorage.setItem(MK_KEY,JSON.stringify(MARKS))}catch(e){}}
+const mkOf=id=>MARKS[id]||'u';
+function setMark(id,v,ev){
+  if(ev&&ev.stopPropagation)ev.stopPropagation();
+  if(MARKS[id]===v)delete MARKS[id];else MARKS[id]=v;
+  saveMarks();applyFilter();
+}
+function clearMarks(){
+  if(!Object.keys(MARKS).length)return;
+  MARKS={};saveMarks();applyFilter();
+}
+function copyMarks(){
+  const all=ISSUES.flatMap(d=>d.items.map(i=>({...i,key:d.key})));
+  const grp=v=>all.filter(i=>mkOf(i.id)===v);
+  const fmt=a=>a.length?a.map(i=>`${i.id} [${DIM_SHORT[i.key]}/${SEV_LABEL[i.sev]}] ${i.title}`).join('\n'):'（无）';
+  const txt=`一键转卖·渠道新版 问题标注结果\n\n【确认是问题 ${grp('y').length}】\n${fmt(grp('y'))}\n\n【判定不是问题 ${grp('n').length}】\n${fmt(grp('n'))}\n\n【未标记 ${grp('u').length}】\n${fmt(grp('u'))}`;
+  const done=()=>{const b=document.getElementById('btn-copy');if(!b)return;b.textContent='已复制';setTimeout(()=>{b.textContent='复制标注'},1500)};
+  // file:// 打开属非安全上下文，navigator.clipboard 不存在，降级到 textarea + execCommand
+  const fallback=()=>{
+    try{
+      const ta=document.createElement('textarea');
+      ta.value=txt;ta.style.position='fixed';ta.style.top='-9999px';
+      document.body.appendChild(ta);ta.select();
+      const ok=document.execCommand('copy');
+      document.body.removeChild(ta);
+      ok?done():alert(txt);
+    }catch(e){alert(txt)}
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(done,fallback);
+  else fallback();
+}
+
+/* ───────── ISSUES RENDER ───────── */
+function renderIssues(){
+  const all=ISSUES.flatMap(d=>d.items);
+  const cnt=s=>all.filter(i=>i.sev===s).length;
+  const fb=new Set();
+  all.forEach(i=>(i.fb||'').match(/#\d+/g)?.forEach(n=>fb.add(n)));
+  document.getElementById('tb-issues').textContent=`问题(${all.length})`;
+
+  let h=`<div class="iss-top">
+    <div class="iss-hd">
+      <div class="iss-scope"><b>一键转卖 · 渠道新版</b><br>得物订单/「我有」→ 中转页 → 落地页（寄售/回收）· 挂售页 → 建单 → 结果页</div>
+      <div class="iss-nums">
+        <span class="iss-num"><b>${all.length}</b> 项</span>
+        <span class="iss-num s-c">严重 <b>${cnt('c')}</b></span>
+        <span class="iss-num s-m">重要 <b>${cnt('m')}</b></span>
+        <span class="iss-num">一般 <b>${cnt('l')}</b></span>
+        <span class="iss-num">关联反馈 <b>${fb.size}</b></span>
+        <span class="iss-num prog">已标注 <b id="mk-prog">0</b>/${all.length}</span>
+        <button class="iss-act" id="btn-copy" onclick="copyMarks()">复制标注</button>
+        <button class="iss-act" onclick="clearMarks()">清空标注</button>
+      </div>
+    </div>
+    <div class="iss-bars">
+      <div class="iss-bar" id="bar-type"><span class="bl">问题类型</span>
+        <button onclick="setType('all')" id="tf-all" class="on">全部<span class="bn" id="tn-all"></span></button>
+        ${ISSUES.map(d=>`<button onclick="setType('${d.key}')" id="tf-${d.key}">${DIM_SHORT[d.key]}<span class="bn" id="tn-${d.key}"></span></button>`).join('')}
+      </div>
+      <div class="iss-bar" id="bar-sev"><span class="bl">严重程度</span>
+        <button onclick="setSev('all')" id="sf-all" class="on">全部<span class="bn" id="sn-all"></span></button>
+        <button onclick="setSev('c')" id="sf-c">严重<span class="bn" id="sn-c"></span></button>
+        <button onclick="setSev('m')" id="sf-m">重要<span class="bn" id="sn-m"></span></button>
+        <button onclick="setSev('l')" id="sf-l">一般<span class="bn" id="sn-l"></span></button>
+      </div>
+      <div class="iss-bar" id="bar-mark"><span class="bl">我的判定</span>
+        <button onclick="setMk('all')" id="mf-all" class="on">全部<span class="bn" id="mn-all"></span></button>
+        <button onclick="setMk('y')" id="mf-y">是问题<span class="bn" id="mn-y"></span></button>
+        <button onclick="setMk('n')" id="mf-n">不是问题<span class="bn" id="mn-n"></span></button>
+        <button onclick="setMk('u')" id="mf-u">未标记<span class="bn" id="mn-u"></span></button>
+      </div>
+    </div>
+  </div>`;
+
+  ISSUES.forEach((d,di)=>{
+    h+=`<div class="dim-block" id="ib-${di}" data-key="${d.key}">
+      <div class="dim-head" onclick="tgDim(${di})" id="ih-${di}">
+        <span class="arrow">▼</span><h3>${d.title}</h3><span class="cnt" id="ic-${di}">${d.items.length}</span>
+      </div>
+      <div class="dim-body" id="idb-${di}">`;
+    d.items.forEach((it,ii)=>{
+      const more=!!(it.desc||it.detail||it.fix);
+      h+=`<div class="iss-card sev-${it.sev}" data-sev="${it.sev}" data-id="${it.id}" id="card-${it.id}">
+        <div class="iss-card-head" ${more?`onclick="tgIss(${di},${ii})"`:''}>
+          <div class="iss-line">
+            <span class="sev-badge s-${it.sev}">${SEV_LABEL[it.sev]}</span>
+            <div class="iss-title"><span class="iid">${it.id}</span>${it.title}</div>
+            <div class="iss-mark">
+              <button id="mky-${it.id}" onclick="setMark('${it.id}','y',event)">是问题</button>
+              <button id="mkn-${it.id}" onclick="setMark('${it.id}','n',event)">不是问题</button>
+            </div>
+            ${more?`<span class="iss-expand" id="ie-${di}-${ii}">▶</span>`:''}
+          </div>
+          <div class="iss-meta">
+            ${it.page?`<span class="mt"><span class="k">页面</span><span class="v">${it.page}</span></span>`:''}
+            ${it.mod?`<span class="mt"><span class="k">模块</span><span class="v">${it.mod}</span></span>`:''}
+            ${it.fld?`<span class="mt mt-fld"><span class="k">字段</span><span class="v">${esc(it.fld)}</span></span>`:''}
+            ${it.fb?`<span class="mt mt-fb"><span class="k">反馈</span><span class="v">${it.fb}</span></span>`:''}
+          </div>
+        </div>`;
+      if(more){
+        h+=`<div class="iss-detail" id="id-${di}-${ii}">`;
+        if(it.desc)h+=`<div class="desc">${it.desc}</div>`;
+        if(it.detail)h+=it.detail;
+        if(it.fix)h+=`<div class="fix"><b>建议 · </b>${it.fix}</div>`;
+        if(it.note)h+=`<div class="note">${it.note}</div>`;
+        h+=`</div>`;
+      }
+      h+=`</div>`;
+    });
+    h+=`</div></div>`;
+  });
+  h+=`<div class="iss-empty" id="iss-empty" style="display:none">当前筛选条件下没有问题</div>`;
+  document.getElementById('issues-panel').innerHTML=h;
+  applyFilter();
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+/* 折叠：详情默认展开，点击收起 */
+function tgDim(di){
+  const hd=document.getElementById('ih-'+di);
+  document.getElementById('idb-'+di).classList.toggle('collapsed',hd.classList.toggle('collapsed'));
+}
+function tgIss(di,ii){
+  const d=document.getElementById(`id-${di}-${ii}`),e=document.getElementById(`ie-${di}-${ii}`);
+  if(e)e.classList.toggle('closed',d.classList.toggle('closed'));
+}
+
+/* 三组筛选可叠加：问题类型 × 严重程度 × 我的判定 */
+function setType(k){typeFilter=k;applyFilter()}
+function setSev(s){sevFilter=s;applyFilter()}
+function setMk(m){markFilter=m;applyFilter()}
+function applyFilter(){
+  const all=ISSUES.flatMap(d=>d.items.map(i=>({...i,key:d.key})));
+  const pass=(i,t,s,m)=>(t==='all'||i.key===t)&&(s==='all'||i.sev===s)&&(m==='all'||mkOf(i.id)===m);
+  // 每个按钮的计数 = 它自己的取值 + 另外两组的当前取值
+  ['all',...ISSUES.map(d=>d.key)].forEach(k=>{
+    document.getElementById('tf-'+k).classList.toggle('on',k===typeFilter);
+    document.getElementById('tn-'+k).textContent=all.filter(i=>pass(i,k,sevFilter,markFilter)).length;
+  });
+  ['all','c','m','l'].forEach(s=>{
+    document.getElementById('sf-'+s).classList.toggle('on',s===sevFilter);
+    document.getElementById('sn-'+s).textContent=all.filter(i=>pass(i,typeFilter,s,markFilter)).length;
+  });
+  ['all','y','n','u'].forEach(m=>{
+    document.getElementById('mf-'+m).classList.toggle('on',m===markFilter);
+    document.getElementById('mn-'+m).textContent=all.filter(i=>pass(i,typeFilter,sevFilter,m)).length;
+  });
+  document.getElementById('mk-prog').textContent=all.filter(i=>mkOf(i.id)!=='u').length;
+  // 卡片标注态与显隐
+  let total=0;
+  ISSUES.forEach((d,di)=>{
+    let shown=0;
+    d.items.forEach(it=>{
+      const mk=mkOf(it.id),c=document.getElementById('card-'+it.id);
+      const y=document.getElementById('mky-'+it.id),n=document.getElementById('mkn-'+it.id);
+      if(y)y.classList.toggle('on-y',mk==='y');
+      if(n)n.classList.toggle('on-n',mk==='n');
+      if(!c)return;
+      c.classList.toggle('mk-y',mk==='y');
+      c.classList.toggle('mk-n',mk==='n');
+      const hit=pass({...it,key:d.key},typeFilter,sevFilter,markFilter);
+      c.classList.toggle('hide',!hit);if(hit)shown++;
+    });
+    document.getElementById('ic-'+di).textContent=shown;
+    document.getElementById('ib-'+di).classList.toggle('hide',shown===0);
+    total+=shown;
+  });
+  document.getElementById('iss-empty').style.display=total?'none':'block';
+}
+
+/* ───────── NAV ───────── */
+const TABS=['consign','recycle','hall','issues'];
+function goTab(t){
+  resetAll();cur=t;
+  TABS.forEach(k=>{document.getElementById('v-'+k)?.classList.toggle('on',k===t);document.getElementById('tb-'+k).classList.toggle('on',k===t)});
+  const iss=t==='issues';
+  document.getElementById('issues-panel').classList.toggle('on',iss);
+  document.getElementById('canvas').style.display=iss?'none':'block';
+  document.getElementById('zb').style.display=iss?'none':'flex';
+  document.getElementById('hint').textContent=iss
+    ?'点击维度标题 → 折叠/展开 · 点击问题卡 → 查看详情、根因与建议'
+    :'点击按钮 → 高亮整条链路 · 问题Tab → 查看全部审计发现';
+  if(!iss)setTimeout(zf,100);
+}
+function at(){world.style.transform=`translate(${tx}px,${ty}px) scale(${sc})`}
+function zf(){const cv=document.getElementById('canvas'),v=document.getElementById('v-'+cur);if(!v)return;let mx=0,my=0;v.querySelectorAll('.nd').forEach(e=>{mx=Math.max(mx,e.offsetLeft+e.offsetWidth+30);my=Math.max(my,e.offsetTop+e.offsetHeight+30)});const sx=cv.clientWidth/mx,sy=cv.clientHeight/my;sc=Math.min(sx,sy,1)*.88;tx=(cv.clientWidth-mx*sc)/2;ty=(cv.clientHeight-my*sc)/2+20;at()}
+function zi(){sc=Math.min(sc*1.2,3);at()}function zo(){sc=Math.max(sc/1.2,.12);at()}
+
+function init(){
+  world=document.getElementById('world');tipEl=document.getElementById('tip');
+  world.style.width=W+'px';world.style.height=H+'px';
+  build('consign',mkConsign());build('recycle',mkRecycle());build('hall',mkHall());
+  renderIssues();
+  goTab('consign');
+  const cv=document.getElementById('canvas');
+  cv.addEventListener('mousedown',e=>{drag=true;cv.classList.add('dragging');ds={x:e.clientX,y:e.clientY};ps={x:tx,y:ty}});
+  cv.addEventListener('mousemove',e=>{if(!drag)return;tx=ps.x+(e.clientX-ds.x);ty=ps.y+(e.clientY-ds.y);at()});
+  cv.addEventListener('mouseup',()=>{drag=false;cv.classList.remove('dragging')});
+  cv.addEventListener('mouseleave',()=>{drag=false;cv.classList.remove('dragging')});
+  // 触摸：单指拖拽 / 双指捏合缩放
+  let pd=0,pc=null;
+  const dist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+  cv.addEventListener('touchstart',e=>{
+    if(e.touches.length===1){drag=true;ds={x:e.touches[0].clientX,y:e.touches[0].clientY};ps={x:tx,y:ty}}
+    else if(e.touches.length===2){drag=false;pd=dist(e.touches);const r=cv.getBoundingClientRect();
+      pc={x:(e.touches[0].clientX+e.touches[1].clientX)/2-r.left,y:(e.touches[0].clientY+e.touches[1].clientY)/2-r.top}}
+  },{passive:true});
+  cv.addEventListener('touchmove',e=>{
+    if(e.touches.length===1&&drag){e.preventDefault();tx=ps.x+(e.touches[0].clientX-ds.x);ty=ps.y+(e.touches[0].clientY-ds.y);at()}
+    else if(e.touches.length===2&&pd){e.preventDefault();const nd=dist(e.touches),os=sc;
+      sc=Math.max(.12,Math.min(3,sc*(nd/pd)));pd=nd;
+      tx=pc.x-(pc.x-tx)*(sc/os);ty=pc.y-(pc.y-ty)*(sc/os);at()}
+  },{passive:false});
+  cv.addEventListener('touchend',e=>{if(e.touches.length===0){drag=false;pd=0;pc=null}},{passive:true});
+  cv.addEventListener('wheel',e=>{e.preventDefault();const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,os=sc;sc*=e.deltaY<0?1.1:.9;sc=Math.max(.12,Math.min(3,sc));tx=mx-(mx-tx)*(sc/os);ty=my-(my-ty)*(sc/os);at()},{passive:false});
+  cv.addEventListener('click',()=>resetAll());
+  setTimeout(zf,200);
+}
+init();
+</script>
+</body>
+</html>
